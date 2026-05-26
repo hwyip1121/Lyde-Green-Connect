@@ -40,7 +40,26 @@ export function validateUKMobile(raw: string): { valid: boolean; error?: string 
 }
 
 // ── Content moderation ───────────────────────────────────────────
-const PROFANITY = ["fuck","shit","cunt","bastard","wanker","twat","bollocks","prick"];
+const PROFANITY = [
+  // Core profanity
+  "fuck","fucking","fucked","fucker","fucks",
+  "shit","shitting","shitted","shits","bullshit",
+  "cunt","cunts","bastard","bastards",
+  "wanker","wankers","wanking",
+  "twat","twats","bollocks",
+  "prick","pricks","dickhead","dickheads",
+  "bitch","bitches","arsehole","arseholes","asshole","assholes",
+  "cock","cocks","pussy","tit","tits",
+  "motherfucker","motherfucking",
+  // Slurs (racial, sexual, disability)
+  "nigger","nigga","chink","paki","spastic","retard","faggot","dyke",
+  // Threats / harassment
+  "kill yourself","kys","go die","i will kill","i'll kill",
+  // Spam signals
+  "buy now","click here","earn money","make money fast","work from home",
+  "whatsapp me","telegram me","dm me for",
+];
+
 const LINK_RE = /(?:https?:\/\/|www\.)[^\s]+\.[a-z]{2,}/gi;
 
 export function moderateContent(text: string): { safe: boolean; sanitised: string } {
@@ -49,9 +68,10 @@ export function moderateContent(text: string): { safe: boolean; sanitised: strin
   let unsafe = LINK_RE.test(text);
   LINK_RE.lastIndex = 0;
   for (const w of PROFANITY) {
-    if (out.toLowerCase().includes(w)) {
+    const re = new RegExp(`\\b${w.replace(/\s+/g, "\\s+")}\\b`, "gi");
+    if (re.test(out)) {
       unsafe = true;
-      out = out.replace(new RegExp(w, "gi"), "*".repeat(w.length));
+      out = out.replace(re, "*".repeat(w.length));
     }
   }
   return { safe: !unsafe, sanitised: out };
