@@ -1,8 +1,4 @@
 "use client";
-// ================================================================
-// BS16 Hub — Registration Page
-// app/auth/register/page.tsx
-// ================================================================
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -78,15 +74,13 @@ export default function RegisterPage() {
 
       <div className="flex-1 flex items-start justify-center px-5 pt-8 pb-20">
         <div className="w-full max-w-md">
-          {/* Progress steps */}
           <div className="flex items-center gap-2 mb-8">
             {(["account","location","confirm"] as Step[]).map((s, i) => {
               const done = (step === "location" && i === 0) || step === "confirm";
               const active = s === step;
               return (
                 <div key={s} className="flex items-center gap-2 flex-1">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors
-                    ${active ? "bg-emerald-700 text-white" : done ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-400"}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${active ? "bg-emerald-700 text-white" : done ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-400"}`}>
                     {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
                   </div>
                   <span className={`text-xs hidden sm:block ${active ? "text-slate-900 font-medium" : "text-slate-400"}`}>
@@ -100,36 +94,59 @@ export default function RegisterPage() {
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 
-            {/* Step 1 */}
             {step === "account" && (
               <div className="space-y-5">
                 <div>
                   <h1 className="text-xl font-bold text-slate-900">Create your account</h1>
                   <p className="text-sm text-slate-500 mt-1">Join your local community hub</p>
                 </div>
-                {/* Role selector */}
                 <div>
                   <label className="text-sm font-medium text-slate-700 block mb-2">I am a…</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[["homeowner","🏠","Homeowner"],["trader","🔧","Tradesperson"]].map(([r, emoji, label]) => (
                       <button key={r} type="button" onClick={() => set("role", r)}
-                        className={`p-3 rounded-xl border-2 text-sm font-medium transition-all
-                          ${form.role === r ? "border-emerald-600 bg-emerald-50 text-emerald-900" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                        className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${form.role === r ? "border-emerald-600 bg-emerald-50 text-emerald-900" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                         <div className="text-2xl mb-1">{emoji}</div>{label}
                       </button>
                     ))}
                   </div>
                 </div>
-                {[["displayName","Your Name","e.g. Sarah M.","text"],["email","Email","you@example.com","email"],["phoneNumber","UK Mobile Number","07700 900123","tel"],["password","Password","At least 8 characters","password"]].map(([k, label, ph, type]) => (
-                  <div key={k} className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-700 block">{label}</label>
-                    <input type={type} placeholder={ph} value={(form as any)[k]}
-                      onChange={e => set(k, e.target.value)}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors
-                        ${errors[k] && <p className="text-xs text-red-600">{errors[k]}</p>}
-                    {k === "phoneNumber" && !errors[k] && <p className="text-xs text-slate-400">🔒 Only used for account verification · never shown publicly</p>}
-                  </div>
-                ))}
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700 block">Your Name</label>
+                  <input type="text" placeholder="e.g. Sarah M." value={form.displayName}
+                    onChange={e => set("displayName", e.target.value)}
+                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.displayName ? "border-red-300 bg-red-50" : "border-slate-200 hover:border-slate-300"}`} />
+                  {errors.displayName && <p className="text-xs text-red-600">{errors.displayName}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700 block">Email</label>
+                  <input type="email" placeholder="you@example.com" value={form.email}
+                    onChange={e => set("email", e.target.value)}
+                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.email ? "border-red-300 bg-red-50" : "border-slate-200 hover:border-slate-300"}`} />
+                  {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700 block">UK Mobile Number</label>
+                  <input type="tel" placeholder="07700 900123" value={form.phoneNumber}
+                    onChange={e => set("phoneNumber", e.target.value)}
+                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.phoneNumber ? "border-red-300 bg-red-50" : "border-slate-200 hover:border-slate-300"}`} />
+                  {errors.phoneNumber
+                    ? <p className="text-xs text-red-600">{errors.phoneNumber}</p>
+                    : <p className="text-xs text-slate-400">🔒 Only used for account verification · never shown publicly</p>
+                  }
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700 block">Password</label>
+                  <input type="password" placeholder="At least 8 characters" value={form.password}
+                    onChange={e => set("password", e.target.value)}
+                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.password ? "border-red-300 bg-red-50" : "border-slate-200 hover:border-slate-300"}`} />
+                  {errors.password && <p className="text-xs text-red-600">{errors.password}</p>}
+                </div>
+
                 <button onClick={() => validateStep1() && setStep("location")}
                   className="w-full py-3 rounded-xl bg-emerald-700 text-white font-semibold text-sm hover:bg-emerald-800 transition-colors flex items-center justify-center gap-2">
                   Continue <ChevronRight className="w-4 h-4" />
@@ -138,7 +155,6 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Step 2 */}
             {step === "location" && (
               <div className="space-y-5">
                 <div>
@@ -155,8 +171,7 @@ export default function RegisterPage() {
                   <label className="text-sm font-medium text-slate-700 block">Your Postcode * <span className="text-slate-400 font-normal">(must begin with BS16)</span></label>
                   <input type="text" placeholder="e.g. BS16 5UT" value={form.postcode}
                     onChange={e => set("postcode", e.target.value.toUpperCase())} maxLength={8}
-                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors
-                      ${errors.postcode ? "border-red-300 bg-red-50" : "border-slate-200"}`} />
+                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.postcode ? "border-red-300 bg-red-50" : "border-slate-200"}`} />
                   {errors.postcode && !isExclusionError && <p className="text-xs text-red-600">{errors.postcode}</p>}
                 </div>
                 {isExclusionError && (
@@ -169,8 +184,7 @@ export default function RegisterPage() {
                   <div className="grid grid-cols-2 gap-3">
                     {NEIGHBOURHOODS.map(n => (
                       <button key={n} type="button" onClick={() => set("neighbourhood", n)}
-                        className={`p-4 rounded-xl border-2 text-sm font-medium transition-all text-left
-                          ${form.neighbourhood === n ? "border-emerald-600 bg-emerald-50 text-emerald-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}>
+                        className={`p-4 rounded-xl border-2 text-sm font-medium transition-all text-left ${form.neighbourhood === n ? "border-emerald-600 bg-emerald-50 text-emerald-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}>
                         {n === "Lyde Green" ? "🌳" : "🏘️"} {n}
                       </button>
                     ))}
@@ -192,7 +206,6 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Step 3 */}
             {step === "confirm" && (
               <div className="space-y-5">
                 <div>
@@ -200,7 +213,7 @@ export default function RegisterPage() {
                   <p className="text-sm text-slate-500 mt-1">Review your details before joining</p>
                 </div>
                 <div className="bg-slate-50 border border-slate-200 rounded-xl divide-y divide-slate-200">
-                  {[["Name", form.displayName],["Email", form.email],["Mobile", form.phoneNumber],["Postcode", form.postcode.toUpperCase()],["Neighbourhood", form.neighbourhood],["Role", form.role === "trader" ? "Tradesperson" : "Homeowner"]].map(([label, value]) => (
+                  {[["Name",form.displayName],["Email",form.email],["Mobile",form.phoneNumber],["Postcode",form.postcode.toUpperCase()],["Neighbourhood",form.neighbourhood],["Role",form.role === "trader" ? "Tradesperson" : "Homeowner"]].map(([label, value]) => (
                     <div key={label} className="flex justify-between items-center px-4 py-3">
                       <span className="text-sm text-slate-500">{label}</span>
                       <span className="text-sm font-medium text-slate-900">{value}</span>
@@ -224,6 +237,7 @@ export default function RegisterPage() {
                 </div>
               </div>
             )}
+
           </div>
         </div>
       </div>
