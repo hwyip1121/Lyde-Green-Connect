@@ -153,7 +153,7 @@ export default function ProfilePage() {
                   title="Market Listings"
                   color="text-emerald-700"
                   items={posts.market}
-                  renderItem={(item) => (
+                  renderItem={(item: any) => (
                     <div key={item.id} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-900 truncate">{item.title}</p>
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                   title="Notice Board Posts"
                   color="text-purple-700"
                   items={posts.notices}
-                  renderItem={(item) => (
+                  renderItem={(item: any) => (
                     <div key={item.id} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-900 truncate">{item.title}</p>
@@ -191,7 +191,7 @@ export default function ProfilePage() {
                   title="Job Posts"
                   color="text-blue-700"
                   items={posts.jobs}
-                  renderItem={(item) => (
+                  renderItem={(item: any) => (
                     <div key={item.id} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-900 truncate">{item.title}</p>
