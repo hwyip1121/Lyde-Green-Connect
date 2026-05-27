@@ -29,7 +29,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-bold text-slate-900 tracking-tight">BS16 Hub</span>
           <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Beta</span>
         </div>
-        <Link href="/auth/login" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm">👤</Link>
+        <Link href="/profile" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm">👤</Link>
       </header>
 
       {/* Desktop top nav */}
@@ -57,7 +57,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             )
           )}
         </div>
-        <Link href="/auth/login" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm hover:bg-slate-200 transition-colors">👤</Link>
+        <Link href="/profile" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm hover:bg-slate-200 transition-colors">👤</Link>
       </nav>
 
       {/* Page content */}
