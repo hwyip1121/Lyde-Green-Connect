@@ -126,9 +126,8 @@ export default function RegisterPage() {
                     <input type={type} placeholder={ph} value={(form as any)[k]}
                       onChange={e => set(k, e.target.value)}
                       className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors
-                        ${errors[k] ? "border-red-300 bg-red-50" : "border-slate-200 hover:border-slate-300"}`} />
-                    {errors[k] {errors[k] && <p className="text-xs text-red-600">{errors[k]}</p>}{errors[k] && <p className="text-xs text-red-600">{errors[k]}</p>} <p className="text-xs text-red-600">{errors[k]}</p>}
-                    {k === "phoneNumber" && !errors[k] && <p className="text-xs text-slate-400 flex items-center gap-1">🔒 Only used for account verification · never shown publicly</p>}
+                        ${errors[k] && <p className="text-xs text-red-600">{errors[k]}</p>}
+                    {k === "phoneNumber" && !errors[k] && <p className="text-xs text-slate-400">🔒 Only used for account verification · never shown publicly</p>}
                   </div>
                 ))}
                 <button onClick={() => validateStep1() && setStep("location")}
