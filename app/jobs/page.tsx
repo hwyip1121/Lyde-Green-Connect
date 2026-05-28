@@ -49,6 +49,7 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<JobCategory | "All">("All");
   const [showCreate, setShowCreate] = useState(false);
+  const [showApplicants, setShowApplicants] = useState<any>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -138,10 +139,13 @@ export default function JobsPage() {
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {relativeTime(job.created_at)}</span>
                       </div>
                       {profile?.role === "trader" && profile?.id !== job.user_id && (
-                        <a href={`/inbox?new=1&listing_id=${job.id}&listing_type=job&receiver_id=${job.user_id}&receiver_name=${encodeURIComponent(job.profiles?.display_name || "Homeowner")}`}
-                          className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
-                          💬 Contact
-                        </a>
+                        <ApplyButton jobId={job.id} traderId={profile.id} />
+                      )}
+                      {profile?.role === "homeowner" && profile?.id === job.user_id && (
+                        <button onClick={() => setShowApplicants(job)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                          👥 Applicants
+                        </button>
                       )}
                     </div>
                   </div>
@@ -152,6 +156,7 @@ export default function JobsPage() {
         )}
       </div>
       {showCreate && <PostJobModal userId={profile?.id} neighbourhood={profile?.neighbourhood} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); loadJobs(); }} />}
+      {showApplicants && <ApplicantsModal job={showApplicants} currentUserId={profile?.id} onClose={() => setShowApplicants(null)} />}
     </AppShell>
   );
 }
@@ -201,6 +206,159 @@ function PostJobModal({ userId, neighbourhood, onClose, onCreated }: { userId: s
           <button onClick={handleSubmit} disabled={loading || !form.title.trim() || !form.description.trim()} className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Posting…</> : "Post Job"}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Apply Button ─────────────────────────────────────────────────
+function ApplyButton({ jobId, traderId }: { jobId: string; traderId: string }) {
+  const [status, setStatus] = useState<"idle" | "applied" | "loading">("idle");
+  const [showModal, setShowModal] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const checkApplied = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("job_applications")
+        .select("id")
+        .eq("job_id", jobId)
+        .eq("trader_id", traderId)
+        .single();
+      if (data) setStatus("applied");
+    };
+    checkApplied();
+  }, [jobId, traderId]);
+
+  const handleApply = async () => {
+    setStatus("loading");
+    const supabase = createClient();
+    const { error } = await supabase.from("job_applications").insert({
+      job_id: jobId,
+      trader_id: traderId,
+      message: message.trim() || null,
+    });
+    if (error) { toast.error(error.message); setStatus("idle"); return; }
+    setStatus("applied");
+    setShowModal(false);
+    toast.success("Application sent!");
+  };
+
+  if (status === "applied") return (
+    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+      ✓ Applied
+    </span>
+  );
+
+  return (
+    <>
+      <button onClick={() => setShowModal(true)}
+        className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+        Apply
+      </button>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <h2 className="font-bold text-slate-900">Apply for Job</h2>
+              <button onClick={() => setShowModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-slate-500">Add an optional message to the homeowner:</p>
+              <textarea
+                placeholder="e.g. I have 10 years experience with this type of work…"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={3}
+                maxLength={500}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+              />
+            </div>
+            <div className="p-5 pt-0 flex gap-3">
+              <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm">Cancel</button>
+              <button onClick={handleApply} disabled={status === "loading"}
+                className="flex-1 py-3 rounded-xl bg-amber-600 text-white font-semibold text-sm hover:bg-amber-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Application"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Applicants Modal ─────────────────────────────────────────────
+function ApplicantsModal({ job, currentUserId, onClose }: { job: any; currentUserId: string; onClose: () => void }) {
+  const [applicants, setApplicants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("job_applications")
+        .select("*, trader:trader_id(id, display_name, neighbourhood)")
+        .eq("job_id", job.id)
+        .order("created_at", { ascending: false });
+      setApplicants(data || []);
+      setLoading(false);
+    };
+    load();
+  }, [job.id]);
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <div>
+            <h2 className="font-bold text-slate-900">Applicants</h2>
+            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{job.title}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5 space-y-3">
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-blue-600 animate-spin" /></div>
+          ) : applicants.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-slate-500 font-medium">No applications yet</p>
+              <p className="text-slate-400 text-sm mt-1">Check back soon!</p>
+            </div>
+          ) : (
+            applicants.map(app => (
+              <div key={app.id} className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-sm">
+                      {(app.trader?.display_name || "T")[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{app.trader?.display_name || "Trader"}</p>
+                      <p className="text-[10px] text-slate-400">{app.trader?.neighbourhood}</p>
+                    </div>
+                  </div>
+                  <a href={`/inbox?new=1&listing_id=${job.id}&listing_type=job&receiver_id=${app.trader?.id}&receiver_name=${encodeURIComponent(app.trader?.display_name || "Trader")}`}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                    💬 Message
+                  </a>
+                </div>
+                {app.message && (
+                  <p className="text-xs text-slate-600 bg-white rounded-lg p-3 border border-slate-200 leading-relaxed">
+                    "{app.message}"
+                  </p>
+                )}
+                <p className="text-[10px] text-slate-400 mt-2">{relativeTime(app.created_at)}</p>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
