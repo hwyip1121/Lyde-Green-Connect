@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingBag, Pin, Eye, Wrench, Briefcase, Smartphone, X, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const NAV = [
   { href: "/market",  label: "Market",  Icon: ShoppingBag },
