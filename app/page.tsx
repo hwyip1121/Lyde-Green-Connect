@@ -9,19 +9,7 @@ import { ShoppingBag, Pin, Briefcase, Wrench, ChevronRight, X, Smartphone } from
 
 // ── Add to Home Screen Banner ────────────────────────────────────
 function AddToHomeBanner() {
-  const [dismissed, setDismissed] = useState(false);
   const [showHow, setShowHow] = useState(false);
-
-  useEffect(() => {
-    if (localStorage.getItem("a2hs-dismissed")) setDismissed(true);
-  }, []);
-
-  const dismiss = () => {
-    localStorage.setItem("a2hs-dismissed", "1");
-    setDismissed(true);
-  };
-
-  if (dismissed) return null;
 
   return (
     <>
@@ -35,9 +23,6 @@ function AddToHomeBanner() {
           className="shrink-0 bg-white text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-50 transition-colors"
         >
           How?
-        </button>
-        <button onClick={dismiss} className="shrink-0 text-emerald-300 hover:text-white transition-colors">
-          <X className="w-4 h-4" />
         </button>
       </div>
 
