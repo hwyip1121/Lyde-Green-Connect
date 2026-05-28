@@ -74,6 +74,25 @@ function AddToHomeBanner() {
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      const { createClient } = await import("@/lib/supabase");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { count } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("receiver_id", user.id)
+        .eq("is_read", false);
+      setUnreadCount(count || 0);
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [path]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -109,7 +128,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <Link key={href} href={href}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors
                   ${path.startsWith(href) ? "bg-emerald-50 text-emerald-700" : "text-slate-500 hover:bg-slate-50"}`}>
-                <Icon className="w-4 h-4" /> {label}
+                <div className="relative">
+                  <Icon className="w-4 h-4" />
+                  {href === "/inbox" && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full flex items-center justify-center text-[8px] text-white font-bold">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                  )}
+                </div>
+                {label}
               </Link>
             )
           )}
@@ -142,7 +167,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors relative
                   ${active ? "text-emerald-700" : "text-slate-400"}`}>
                 {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-emerald-600 rounded-b-full" />}
-                <Icon className={`w-5 h-5 ${active ? "stroke-[2.2px]" : "stroke-[1.7px]"}`} />
+                <div className="relative">
+                  <Icon className={`w-5 h-5 ${active ? "stroke-[2.2px]" : "stroke-[1.7px]"}`} />
+                  {href === "/inbox" && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] text-white font-bold">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                  )}
+                </div>
                 <span className={`text-[10px] font-medium ${active ? "text-emerald-700" : "text-slate-400"}`}>{label}</span>
               </Link>
             );
