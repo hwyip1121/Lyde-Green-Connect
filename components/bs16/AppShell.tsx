@@ -76,6 +76,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const [newApplications, setNewApplications] = useState(0);
+  const [newApplications, setNewApplications] = useState(0);
 
   useEffect(() => {
     const fetchUnread = async () => {
