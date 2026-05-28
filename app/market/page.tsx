@@ -132,7 +132,8 @@ export default function MarketPage() {
                     <FlagBtn targetTable="market_listings" targetId={l.id} />
                   </div>
                   {l.user_id !== user?.id && l.status !== "gone" && (
-                    <button className="w-full py-2 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-xl hover:bg-emerald-100 border border-emerald-200">💬 Message Seller</button>
+                    <a href={`/inbox?new=1&listing_id=${l.id}&listing_type=market&receiver_id=${l.user_id}&receiver_name=${encodeURIComponent(l.profiles?.display_name || "Seller")}`}
+                      className="w-full py-2 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-xl hover:bg-emerald-100 border border-emerald-200 block text-center">💬 Message Seller</a>
                   )}
                 </div>
               </div>

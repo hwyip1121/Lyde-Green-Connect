@@ -5,7 +5,7 @@
 // ================================================================
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, Pin, Eye, Wrench, Briefcase, Smartphone, X } from "lucide-react";
+import { ShoppingBag, Pin, Eye, Wrench, Briefcase, Smartphone, X, MessageCircle } from "lucide-react";
 import { useState } from "react";
 
 const NAV = [
@@ -14,6 +14,7 @@ const NAV = [
   { href: "/watch",   label: "Watch",   Icon: Eye         },
   { href: "/jobs",    label: "Jobs",    Icon: Briefcase   },
   { href: "/trades",  label: "Trades",  Icon: Wrench, locked: true },
+  { href: "/inbox",   label: "Inbox",   Icon: MessageCircle },
 ];
 
 
