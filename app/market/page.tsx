@@ -10,7 +10,7 @@ import { moderateContent, checkRateLimit, formatResetTime, formatPrice, relative
 import { Plus, Package, X, Loader2, Flag } from "lucide-react";
 import { toast } from "sonner";
 
-const FILTERS = ["All", "For Sale", "Free / Swap", "Available Only"] as const;
+const FILTERS = ["All", "For Sale", "Free / Swap", "Ask / Wanted", "Available Only"] as const;
 
 // ── Welcome Banner ────────────────────────────────────────────────
 function WelcomeBanner() {
@@ -86,6 +86,7 @@ export default function MarketPage() {
     if (filter === "For Sale") return !l.is_free_swap && (l.price_pence ?? 0) > 0;
     if (filter === "Free / Swap") return l.is_free_swap || l.price_pence === 0;
     if (filter === "Available Only") return l.status === "available";
+    if (filter === "Ask / Wanted") return l.is_wanted === true;
     return true;
   });
 
@@ -119,8 +120,8 @@ export default function MarketPage() {
                 <div className="relative h-36 bg-slate-100 flex-shrink-0">
                   {l.image_url ? <img src={l.image_url} alt={l.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl text-slate-300">📦</div>}
                   {l.status === "gone" && <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center"><span className="bg-white text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">GONE</span></div>}
-                  <div className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${l.is_free_swap || (l.price_pence ?? 0) === 0 ? "bg-emerald-600 text-white" : "bg-white text-slate-800 border border-slate-200"}`}>
-                    {formatPrice(l.price_pence, l.is_free_swap)}
+                  <div className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${l.is_wanted ? "bg-blue-600 text-white" : l.is_free_swap || (l.price_pence ?? 0) === 0 ? "bg-emerald-600 text-white" : "bg-white text-slate-800 border border-slate-200"}`}>
+                    {l.is_wanted ? "Ask / Wanted" : formatPrice(l.price_pence, l.is_free_swap)}
                   </div>
                 </div>
                 <div className="p-3 flex flex-col flex-1 gap-2">
@@ -145,7 +146,7 @@ export default function MarketPage() {
 }
 
 function CreateListingModal({ user, onClose, onCreated }: { user: any; onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState({ title: "", description: "", price: "", isFreeSwap: false });
+  const [form, setForm] = useState({ title: "", description: "", price: "", isFreeSwap: false, isWanted: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -162,7 +163,7 @@ function CreateListingModal({ user, onClose, onCreated }: { user: any; onClose: 
       await supabase.from("market_listings").insert({
         user_id: user.id, title: titleMod.sanitised, description: descMod.sanitised,
         price_pence: form.isFreeSwap ? null : form.price ? Math.round(parseFloat(form.price) * 100) : 0,
-        is_free_swap: form.isFreeSwap, neighbourhood: profile?.neighbourhood || "Lyde Green",
+        is_free_swap: form.isFreeSwap, is_wanted: form.isWanted, neighbourhood: profile?.neighbourhood || "Lyde Green",
       });
       onCreated();
     } catch (e: any) { setError(e.message); } finally { setLoading(false); }
@@ -180,9 +181,17 @@ function CreateListingModal({ user, onClose, onCreated }: { user: any; onClose: 
           <div className="space-y-1.5"><label className="text-sm font-medium text-slate-700">Description</label><textarea placeholder="Condition, dimensions…" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} maxLength={500} className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" /></div>
           <div className="space-y-2"><label className="text-sm font-medium text-slate-700">Pricing</label>
             <div className="flex gap-2">
-              {[false, true].map(isFree => <button key={String(isFree)} onClick={() => setForm(f => ({ ...f, isFreeSwap: isFree, price: isFree ? "" : f.price }))} className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${form.isFreeSwap === isFree ? "bg-emerald-700 text-white border-emerald-700" : "border-slate-200 text-slate-600"}`}>{isFree ? "Free / Swap" : "Set Price"}</button>)}
+              {[["false","Set Price"],["free","Free / Swap"],["wanted","Ask / Wanted"]].map(([val, label]) => {
+              const active = val === "wanted" ? form.isWanted : val === "free" ? form.isFreeSwap && !form.isWanted : !form.isFreeSwap && !form.isWanted;
+              return (
+                <button key={val} onClick={() => setForm(f => ({ ...f, isWanted: val === "wanted", isFreeSwap: val === "free", price: val !== "false" ? "" : f.price }))}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${active ? "bg-emerald-700 text-white border-emerald-700" : "border-slate-200 text-slate-600"}`}>
+                  {label}
+                </button>
+              );
+            })}
             </div>
-            {!form.isFreeSwap && <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">£</span><input type="number" min="0" step="0.01" placeholder="0.00" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} className="w-full pl-7 pr-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>}
+            {!form.isFreeSwap && !form.isWanted && <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">£</span><input type="number" min="0" step="0.01" placeholder="0.00" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} className="w-full pl-7 pr-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>}
           </div>
           {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">{error}</p>}
         </div>
