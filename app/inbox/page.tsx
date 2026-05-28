@@ -129,7 +129,7 @@ function InboxContent() {
       content: newMessage.trim(),
       is_read: false,
     });
-    if (error) { toast.error("Failed to send message"); setSending(false); return; }
+    if (error) { toast.error(error.message || "Failed to send message"); console.error("Send error:", error); setSending(false); return; }
     setNewMessage("");
     await openConversation(activeConv);
     setSending(false);
