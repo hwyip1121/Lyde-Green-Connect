@@ -1,8 +1,4 @@
 "use client";
-// ================================================================
-// BS16 Hub — Inbox Page
-// app/inbox/page.tsx
-// ================================================================
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppShell from "@/components/bs16/AppShell";
@@ -32,7 +28,6 @@ function InboxContent() {
       await loadConversations(user.id);
       setLoading(false);
 
-      // Check if opened from a new listing message
       const isNew = searchParams.get("new");
       if (isNew) {
         const listingId = searchParams.get("listing_id");
@@ -40,18 +35,18 @@ function InboxContent() {
         const receiverId = searchParams.get("receiver_id");
         const receiverName = searchParams.get("receiver_name");
         if (listingId && receiverId) {
-          const convId = [user.id, receiverId, listingId].sort().join("-");
-          setActiveConv({
+          const convId = [user.id, receiverId, listingId].sort().join("_");
+          const conv = {
             id: convId,
             listing_id: listingId,
             listing_type: listingType,
             other_user_id: receiverId,
             other_user_name: decodeURIComponent(receiverName || "Seller"),
-          });
-          const supabase = createClient();
+          };
+          setActiveConv(conv);
           const { data } = await supabase
             .from("messages")
-            .select("*, sender:sender_id(display_name)")
+            .select("*")
             .eq("conversation_id", convId)
             .order("created_at", { ascending: true });
           setMessages(data || []);
@@ -67,29 +62,43 @@ function InboxContent() {
 
   const loadConversations = async (userId: string) => {
     const supabase = createClient();
-    const { data } = await supabase
+    const { data: msgs } = await supabase
       .from("messages")
-      .select("*, sender:sender_id(display_name), receiver:receiver_id(display_name)")
+      .select("*")
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order("created_at", { ascending: false });
 
-    if (!data) return;
+    if (!msgs) return;
 
-    // Group by conversation_id
+    // Get all unique user IDs to fetch names
+    const userIds = new Set<string>();
+    msgs.forEach(m => { userIds.add(m.sender_id); userIds.add(m.receiver_id); });
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, display_name")
+      .in("id", Array.from(userIds));
+
+    const profileMap = new Map((profiles || []).map(p => [p.id, p.display_name]));
+
     const convMap = new Map<string, any>();
-    for (const msg of data) {
+    for (const msg of msgs) {
       if (!convMap.has(msg.conversation_id)) {
         const otherId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
-        const otherName = msg.sender_id === userId ? msg.receiver?.display_name : msg.sender?.display_name;
+        const otherName = profileMap.get(otherId) || "Neighbour";
+        const unread = msgs.filter(m =>
+          m.conversation_id === msg.conversation_id &&
+          !m.is_read &&
+          m.receiver_id === userId
+        ).length;
         convMap.set(msg.conversation_id, {
           id: msg.conversation_id,
           listing_id: msg.listing_id,
           listing_type: msg.listing_type,
           other_user_id: otherId,
-          other_user_name: otherName || "Neighbour",
+          other_user_name: otherName,
           last_message: msg.content,
           last_time: msg.created_at,
-          unread: data.filter(m => m.conversation_id === msg.conversation_id && !m.is_read && m.receiver_id === userId).length,
+          unread,
         });
       }
     }
@@ -101,12 +110,11 @@ function InboxContent() {
     const supabase = createClient();
     const { data } = await supabase
       .from("messages")
-      .select("*, sender:sender_id(display_name)")
+      .select("*")
       .eq("conversation_id", conv.id)
       .order("created_at", { ascending: true });
     setMessages(data || []);
 
-    // Mark as read
     await supabase
       .from("messages")
       .update({ is_read: true })
@@ -117,10 +125,10 @@ function InboxContent() {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !activeConv) return;
+    if (!newMessage.trim() || !activeConv || !user) return;
     setSending(true);
     const supabase = createClient();
-    const { error } = await supabase.from("messages").insert({
+    const { data, error } = await supabase.from("messages").insert({
       conversation_id: activeConv.id,
       sender_id: user.id,
       receiver_id: activeConv.other_user_id,
@@ -128,10 +136,12 @@ function InboxContent() {
       listing_type: activeConv.listing_type,
       content: newMessage.trim(),
       is_read: false,
-    });
-    if (error) { toast.error(error.message || "Failed to send message"); console.error("Send error:", error); setSending(false); return; }
+    }).select();
+    if (error) { toast.error(error.message); setSending(false); return; }
     setNewMessage("");
-    await openConversation(activeConv);
+    // Add message directly to state for instant display
+    if (data) setMessages(prev => [...prev, ...data]);
+    await loadConversations(user.id);
     setSending(false);
   };
 
@@ -183,9 +193,9 @@ function InboxContent() {
           </>
         ) : (
           <div className="flex flex-col h-[calc(100vh-140px)]">
-            {/* Chat header */}
             <div className="flex items-center gap-3 mb-4">
-              <button onClick={() => setActiveConv(null)} className="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500">
+              <button onClick={() => { setActiveConv(null); loadConversations(user.id); }}
+                className="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500">
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">
@@ -197,8 +207,12 @@ function InboxContent() {
               </div>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+              {messages.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-slate-400 text-sm">No messages yet — say hello! 👋</p>
+                </div>
+              )}
               {messages.map(msg => {
                 const isMine = msg.sender_id === user.id;
                 return (
@@ -213,16 +227,12 @@ function InboxContent() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div className="flex gap-2 pt-3 border-t border-slate-200">
-              <input
-                type="text"
-                value={newMessage}
+              <input type="text" value={newMessage}
                 onChange={e => setNewMessage(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && sendMessage()}
+                onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
                 placeholder="Type a message…"
-                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
               <button onClick={sendMessage} disabled={sending || !newMessage.trim()}
                 className="w-11 h-11 rounded-xl bg-emerald-700 text-white flex items-center justify-center hover:bg-emerald-800 disabled:opacity-50 transition-colors">
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
