@@ -137,8 +137,11 @@ export default function JobsPage() {
                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> BS16</span>
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {relativeTime(job.created_at)}</span>
                       </div>
-                      {profile?.role === "trader" && (
-                        <button className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">Contact</button>
+                      {profile?.role === "trader" && profile?.id !== job.user_id && (
+                        <a href={`/inbox?new=1&listing_id=${job.id}&listing_type=job&receiver_id=${job.user_id}&receiver_name=${encodeURIComponent(job.profiles?.display_name || "Homeowner")}`}
+                          className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                          💬 Contact
+                        </a>
                       )}
                     </div>
                   </div>
