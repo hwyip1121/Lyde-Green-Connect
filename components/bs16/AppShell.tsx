@@ -101,15 +101,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         .from("jobs")
         .select("id")
         .eq("user_id", user.id);
-      if (!myJobs || myJobs.length === 0) return;
-      const jobIds = myJobs.map(j => j.id);
-      // Count unseen applications (created in last 7 days, status pending)
-      const { count } = await supabase
+      if (!myJobs || myJobs.length === 0) { setNewApplications(0); return; }
+      const jobIds = myJobs.map((j: any) => j.id);
+      // Get all pending applications
+      const { data: apps } = await supabase
         .from("job_applications")
-        .select("*", { count: "exact", head: true })
+        .select("job_id, trader_id")
         .in("job_id", jobIds)
         .eq("status", "pending");
-      setNewApplications(count || 0);
+      if (!apps || apps.length === 0) { setNewApplications(0); return; }
+      // Check which ones already have a message thread
+      let unactioned = 0;
+      for (const app of apps) {
+        const convId = [user.id, app.trader_id, app.job_id].sort().join("_");
+        const { count } = await supabase
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .eq("conversation_id", convId)
+          .eq("sender_id", user.id);
+        if (!count || count === 0) unactioned++;
+      }
+      setNewApplications(unactioned);
     };
     fetchUnread();
     fetchApplications();
