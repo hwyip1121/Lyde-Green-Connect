@@ -75,6 +75,7 @@ function AddToHomeBanner() {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [newApplications, setNewApplications] = useState(0);
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -89,8 +90,29 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         .eq("is_read", false);
       setUnreadCount(count || 0);
     };
+    const fetchApplications = async () => {
+      const { createClient } = await import("@/lib/supabase");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      // Get all jobs owned by this user
+      const { data: myJobs } = await supabase
+        .from("jobs")
+        .select("id")
+        .eq("user_id", user.id);
+      if (!myJobs || myJobs.length === 0) return;
+      const jobIds = myJobs.map(j => j.id);
+      // Count unseen applications (created in last 7 days, status pending)
+      const { count } = await supabase
+        .from("job_applications")
+        .select("*", { count: "exact", head: true })
+        .in("job_id", jobIds)
+        .eq("status", "pending");
+      setNewApplications(count || 0);
+    };
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
+    fetchApplications();
+    const interval = setInterval(() => { fetchUnread(); fetchApplications(); }, 30000);
     return () => clearInterval(interval);
   }, [path]);
 
@@ -133,6 +155,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   {href === "/inbox" && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full flex items-center justify-center text-[8px] text-white font-bold">{unreadCount > 9 ? "9+" : unreadCount}</span>
                   )}
+                  {href === "/jobs" && newApplications > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full flex items-center justify-center text-[8px] text-white font-bold">{newApplications > 9 ? "9+" : newApplications}</span>
+                  )}
                 </div>
                 {label}
               </Link>
@@ -171,6 +196,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <Icon className={`w-5 h-5 ${active ? "stroke-[2.2px]" : "stroke-[1.7px]"}`} />
                   {href === "/inbox" && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] text-white font-bold">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                  )}
+                  {href === "/jobs" && newApplications > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] text-white font-bold">{newApplications > 9 ? "9+" : newApplications}</span>
                   )}
                 </div>
                 <span className={`text-[10px] font-medium ${active ? "text-emerald-700" : "text-slate-400"}`}>{label}</span>
