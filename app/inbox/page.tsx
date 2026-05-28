@@ -3,7 +3,7 @@
 // BS16 Hub — Inbox Page
 // app/inbox/page.tsx
 // ================================================================
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppShell from "@/components/bs16/AppShell";
 import { createClient } from "@/lib/supabase";
@@ -11,7 +11,7 @@ import { relativeTime } from "@/lib/utils";
 import { MessageCircle, Send, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function InboxPage() {
+function InboxContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
@@ -232,5 +232,13 @@ export default function InboxPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+export default function InboxPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 text-emerald-700 animate-spin" /></div>}>
+      <InboxContent />
+    </Suspense>
   );
 }
