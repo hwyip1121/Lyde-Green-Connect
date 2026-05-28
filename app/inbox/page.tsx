@@ -40,7 +40,7 @@ function InboxContent() {
         const receiverId = searchParams.get("receiver_id");
         const receiverName = searchParams.get("receiver_name");
         if (listingId && receiverId) {
-          const convId = [userId, receiverId, listingId].sort().join("-");
+          const convId = [user.id, receiverId, listingId].sort().join("-");
           setActiveConv({
             id: convId,
             listing_id: listingId,
