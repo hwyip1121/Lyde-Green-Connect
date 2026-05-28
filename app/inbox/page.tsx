@@ -32,10 +32,30 @@ export default function InboxPage() {
       await loadConversations(user.id);
       setLoading(false);
 
-      // Check if opened from a listing
-      const convId = searchParams.get("conversation");
-      if (convId) {
-        // Will be handled after conversations load
+      // Check if opened from a new listing message
+      const isNew = searchParams.get("new");
+      if (isNew) {
+        const listingId = searchParams.get("listing_id");
+        const listingType = searchParams.get("listing_type");
+        const receiverId = searchParams.get("receiver_id");
+        const receiverName = searchParams.get("receiver_name");
+        if (listingId && receiverId) {
+          const convId = [userId, receiverId, listingId].sort().join("-");
+          setActiveConv({
+            id: convId,
+            listing_id: listingId,
+            listing_type: listingType,
+            other_user_id: receiverId,
+            other_user_name: decodeURIComponent(receiverName || "Seller"),
+          });
+          const supabase = createClient();
+          const { data } = await supabase
+            .from("messages")
+            .select("*, sender:sender_id(display_name)")
+            .eq("conversation_id", convId)
+            .order("created_at", { ascending: true });
+          setMessages(data || []);
+        }
       }
     };
     init();
