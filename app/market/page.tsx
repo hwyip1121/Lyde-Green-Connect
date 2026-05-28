@@ -30,9 +30,9 @@ function WelcomeBanner() {
         </div>
         <h2 className="text-white font-bold text-lg leading-snug mb-2">Welcome to BS16 Hub</h2>
         <p className="text-emerald-100 text-sm leading-relaxed mb-4">Your hyper-local space for Lyde Green and Emersons Green. Buy, sell, share and stay safe — together.</p>
-        <button onClick={() => setShowTrades(true)} className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-xl border border-white/20">
-          🔨 Local tradesperson? Pre-register for Phase 2 →
-        </button>
+        <span className="inline-flex items-center gap-2 bg-white/10 text-white/60 text-xs px-3 py-2 rounded-xl border border-white/10">
+          🔨 Trader registration coming in Phase 2
+        </span>
       </div>
     </div>
   );

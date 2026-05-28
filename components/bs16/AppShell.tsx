@@ -12,7 +12,7 @@ const NAV = [
   { href: "/market",  label: "Market",  Icon: ShoppingBag },
   { href: "/notices", label: "Notices", Icon: Pin         },
   { href: "/watch",   label: "Watch",   Icon: Eye         },
-  { href: "/jobs",    label: "Jobs",    Icon: Briefcase   },
+  { href: "/jobs",    label: "Jobs",    Icon: Briefcase, locked: true  },
   { href: "/trades",  label: "Trades",  Icon: Wrench, locked: true },
   { href: "/inbox",   label: "Inbox",   Icon: MessageCircle },
 ];
