@@ -5,7 +5,8 @@
 // ================================================================
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, Pin, Eye, Wrench, Briefcase } from "lucide-react";
+import { ShoppingBag, Pin, Eye, Wrench, Briefcase, Smartphone, X } from "lucide-react";
+import { useState } from "react";
 
 const NAV = [
   { href: "/market",  label: "Market",  Icon: ShoppingBag },
@@ -14,6 +15,61 @@ const NAV = [
   { href: "/jobs",    label: "Jobs",    Icon: Briefcase   },
   { href: "/trades",  label: "Trades",  Icon: Wrench, locked: true },
 ];
+
+
+function AddToHomeBanner() {
+  const [showHow, setShowHow] = useState(false);
+  return (
+    <>
+      <div className="mx-4 mt-3 bg-emerald-700 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
+        <Smartphone className="w-5 h-5 text-emerald-200 flex-shrink-0" />
+        <p className="text-sm text-white flex-1 leading-snug">📱 Add BS16 Hub to your home screen!</p>
+        <button onClick={() => setShowHow(true)}
+          className="shrink-0 bg-white text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-50 transition-colors">
+          How?
+        </button>
+      </div>
+      {showHow && (
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <h2 className="font-bold text-slate-900">Add to Home Screen</h2>
+              <button onClick={() => setShowHow(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <div className="flex items-center gap-2 mb-3"><span className="text-lg">🍎</span><span className="font-semibold text-slate-800 text-sm">iPhone (Safari only)</span></div>
+                <ol className="space-y-2">
+                  {["Open bs-16-hub.vercel.app in Safari","Tap the Share button (□ with arrow) at the bottom","Scroll down and tap \"Add to Home Screen\"","Tap \"Add\" in the top right"].map((s, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="text-sm text-slate-600">{s}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="border-t border-slate-100" />
+              <div>
+                <div className="flex items-center gap-2 mb-3"><span className="text-lg">🤖</span><span className="font-semibold text-slate-800 text-sm">Android (Chrome)</span></div>
+                <ol className="space-y-2">
+                  {["Open bs-16-hub.vercel.app in Chrome","Tap the ⋮ menu in the top right","Tap \"Add to Home screen\"","Tap \"Add\""].map((s, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="text-sm text-slate-600">{s}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+            <div className="p-5 pt-0">
+              <button onClick={() => setShowHow(false)} className="w-full py-3 rounded-xl bg-emerald-700 text-white font-semibold text-sm hover:bg-emerald-800">Got it!</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -61,7 +117,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* Page content */}
-      <main className="flex-1 pb-20 md:pb-6">{children}</main>
+      <main className="flex-1 pb-20 md:pb-6">
+        <AddToHomeBanner />
+        {children}
+      </main>
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 safe-area-pb">
