@@ -55,7 +55,7 @@ export default function RegisterPage() {
           neighbourhood: form.neighbourhood, role: form.role, bs16_verified: true,
         });
       }
-      router.push("/market?welcome=1");
+      setStep("verify");
     } catch (err: any) {
       setErrors({ general: err.message || "Registration failed. Please try again." });
     } finally { setLoading(false); }
