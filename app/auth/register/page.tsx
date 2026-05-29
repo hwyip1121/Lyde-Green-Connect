@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import { validateBS16Postcode, validateUKMobile, NEIGHBOURHOODS, type Neighbourhood } from "@/lib/utils";
 import { Check, ChevronRight, ChevronLeft, MapPin, Shield, Loader2 } from "lucide-react";
 
-type Step = "account" | "location" | "confirm";
+type Step = "account" | "location" | "confirm" | "verify";
 
 export default function RegisterPage() {
   const router = useRouter();
