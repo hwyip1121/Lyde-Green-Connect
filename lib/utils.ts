@@ -102,8 +102,8 @@ export function formatPrice(pence: number | null, isFreeSwap: boolean): string {
   if (isFreeSwap || pence === null || pence === 0) return "Free / Swap";
   return `£${(pence / 100).toFixed(2)}`;
 }
-export type Neighbourhood = "Lyde Green" | "Emersons Green";
-export const NEIGHBOURHOODS: Neighbourhood[] = ["Lyde Green", "Emersons Green"];
+export type Neighbourhood = "Lyde Green";
+export const NEIGHBOURHOODS: Neighbourhood[] = ["Lyde Green"];
 export const JOB_CATEGORIES = ["Home Maintenance", "Gardening & Outdoors"] as const;
 export type JobCategory = typeof JOB_CATEGORIES[number];
 export const NOTICE_TAGS = ["Event", "Lost & Found", "Local News"] as const;
