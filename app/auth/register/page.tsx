@@ -179,18 +179,7 @@ export default function RegisterPage() {
                     <p className="text-sm text-amber-800 leading-relaxed">{errors.postcode}</p>
                   </div>
                 )}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-700 block">Neighbourhood *</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {NEIGHBOURHOODS.map(n => (
-                      <button key={n} type="button" onClick={() => set("neighbourhood", n)}
-                        className={`p-4 rounded-xl border-2 text-sm font-medium transition-all text-left ${form.neighbourhood === n ? "border-emerald-600 bg-emerald-50 text-emerald-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}>
-                        {n === "Lyde Green" ? "🌳" : "🏘️"} {n}
-                      </button>
-                    ))}
-                  </div>
-                  {errors.neighbourhood && <p className="text-xs text-red-600">{errors.neighbourhood}</p>}
-                </div>
+
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <p className="text-xs text-blue-800 leading-relaxed"><strong>Privacy:</strong> Your postcode is stored securely and never shown publicly. Only your neighbourhood name appears on your posts.</p>
                 </div>
