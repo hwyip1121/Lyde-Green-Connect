@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — Trader Profile Setup
+// Lyde Green Connect — Trader Profile Setup
 // app/trader-setup/page.tsx
 // ================================================================
 import { useState, useEffect } from "react";

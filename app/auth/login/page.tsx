@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — Login Page
+// Lyde Green Connect — Login Page
 // app/auth/login/page.tsx
 // ================================================================
 import { useState } from "react";
@@ -29,14 +29,14 @@ export default function LoginPage() {
         <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center">
           <span className="text-white text-xs font-bold">B</span>
         </div>
-        <span className="font-bold text-slate-900 text-lg tracking-tight">BS16 Hub</span>
+        <span className="font-bold text-slate-900 text-lg tracking-tight">Lyde Green Connect</span>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-5">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h1 className="text-xl font-bold text-slate-900 mb-1">Welcome back</h1>
-            <p className="text-sm text-slate-500 mb-6">Sign in to your BS16 Hub account</p>
+            <p className="text-sm text-slate-500 mb-6">Sign in to your Lyde Green Connect account</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {[["email","Email","you@example.com","email"],["password","Password","••••••••","password"]].map(([k,label,ph,type]) => (
@@ -55,7 +55,7 @@ export default function LoginPage() {
             </form>
 
             <p className="text-center text-sm text-slate-500 mt-5">
-              Don't have an account? <Link href="/auth/register" className="text-emerald-700 font-medium">Join BS16 Hub</Link>
+              Don't have an account? <Link href="/auth/register" className="text-emerald-700 font-medium">Join Lyde Green Connect</Link>
             </p>
           </div>
         </div>

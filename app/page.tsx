@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — Landing Page
+// Lyde Green Connect — Landing Page
 // app/page.tsx
 // ================================================================
 import { useState, useEffect } from "react";
@@ -16,7 +16,7 @@ function AddToHomeBanner() {
       <div className="mx-4 mt-4 bg-emerald-700 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
         <Smartphone className="w-5 h-5 text-emerald-200 flex-shrink-0" />
         <p className="text-sm text-white flex-1 leading-snug">
-          📱 Get the best experience — add BS16 Hub to your home screen!
+          📱 Get the best experience — add Lyde Green Connect to your home screen!
         </p>
         <button
           onClick={() => setShowHow(true)}
@@ -43,7 +43,7 @@ function AddToHomeBanner() {
                 </div>
                 <ol className="space-y-2">
                   {[
-                    "Open bs-16-hub.vercel.app in Safari",
+                    "Open lyde-green-connect.vercel.app in Safari",
                     "Tap the Share button (□ with arrow) at the bottom",
                     'Scroll down and tap "Add to Home Screen"',
                     'Tap "Add" in the top right',
@@ -63,7 +63,7 @@ function AddToHomeBanner() {
                 </div>
                 <ol className="space-y-2">
                   {[
-                    "Open bs-16-hub.vercel.app in Chrome",
+                    "Open lyde-green-connect.vercel.app in Chrome",
                     "Tap the ⋮ menu in the top right",
                     'Tap "Add to Home screen"',
                     'Tap "Add"',
@@ -103,7 +103,7 @@ export default function LandingPage() {
           <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center">
             <span className="text-white text-[11px] font-bold">B</span>
           </div>
-          <span className="font-bold text-slate-900 tracking-tight">BS16 Hub</span>
+          <span className="font-bold text-slate-900 tracking-tight">Lyde Green Connect</span>
           <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Beta</span>
         </div>
         <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export default function LandingPage() {
           <span className="text-emerald-700">closer together</span>
         </h1>
         <p className="text-slate-500 text-base leading-relaxed mb-8 max-w-md mx-auto">
-          BS16 Hub is a hyper-local community platform for residents of Lyde Green and Emersons Green. Buy, sell, share, and support your neighbours — all in one place.
+          Lyde Green Connect is a hyper-local community platform for Lyde Green residents. Buy, sell, share, and support your neighbours — all in one place.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/auth/register" className="flex items-center justify-center gap-2 bg-emerald-700 text-white font-semibold px-6 py-3.5 rounded-2xl hover:bg-emerald-800 transition-colors text-sm shadow-sm">
@@ -142,14 +142,14 @@ export default function LandingPage() {
             <span className="text-2xl mb-3 block">🌱</span>
             <h2 className="text-xl font-bold mb-2">Our Mission</h2>
             <p className="text-emerald-100 text-sm leading-relaxed">
-              We believe strong communities start with neighbours who know and trust each other. BS16 Hub exists to make it easy to connect, share resources, and support local businesses — right here in BS16.
+              We believe strong communities start with neighbours who know and trust each other. Lyde Green Connect exists to make it easy to connect, share resources, and support local businesses — right here in Lyde Green.
             </p>
           </div>
         </div>
       </section>
 
       <section className="px-4 pb-8 max-w-2xl mx-auto w-full">
-        <h2 className="text-lg font-bold text-slate-900 mb-4">What's on BS16 Hub</h2>
+        <h2 className="text-lg font-bold text-slate-900 mb-4">What's on Lyde Green Connect</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {FEATURES.map(({ icon, color, title, desc, badge }) => (
             <div key={title} className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col gap-3">
@@ -192,7 +192,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-slate-200 bg-white px-4 py-5 text-center">
-        <p className="text-xs text-slate-400">© 2025 BS16 Hub · Lyde Green & Emersons Green · Bristol</p>
+        <p className="text-xs text-slate-400">© 2026 Lyde Green Connect · Lyde Green · Bristol</p>
       </footer>
     </div>
   );

@@ -1,4 +1,4 @@
-# BS16 Hub — Setup & Deployment Guide
+# Lyde Green Connect — Setup & Deployment Guide
 
 ## Step 1 — Create your free Supabase database (5 mins)
 
@@ -34,9 +34,9 @@ NEXT_PUBLIC_ADMIN_EMAIL=your@email.com
 cd ~/Downloads/bs16-full
 git init
 git add -A
-git commit -m "feat: BS16 Hub — complete app"
+git commit -m "feat: Lyde Green Connect — complete app"
 git branch -M main
-git remote add origin https://github.com/hwyip1121/BS16-Hub.git
+git remote add origin https://github.com/hwyip1121/lyde-green-connect.git
 git push -u origin main --force
 ```
 
@@ -46,7 +46,7 @@ git push -u origin main --force
 
 1. Go to **https://vercel.com** and sign up with GitHub
 2. Click **Add New → Project**
-3. Select your **BS16-Hub** repository
+3. Select your **lyde-green-connect** repository
 4. Under **Environment Variables**, add:
    - `NEXT_PUBLIC_SUPABASE_URL` → your Supabase URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → your anon key
@@ -85,7 +85,7 @@ git push -u origin main --force
 
 Share this message with the Lyde Green & Emersons Green community:
 
-> 🏡 **BS16 Hub is live!**
+> 🏡 **Lyde Green Connect is live!**
 > Your free hyper-local community app for Lyde Green and Emersons Green.
 > Buy, sell, share, stay safe and connect with your neighbours.
 > 👉 [your-app.vercel.app]

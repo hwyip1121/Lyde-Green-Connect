@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — App Shell Layout
+// Lyde Green Connect — App Shell Layout
 // components/bs16/AppShell.tsx
 // ================================================================
 import Link from "next/link";
@@ -24,7 +24,7 @@ function AddToHomeBanner() {
     <>
       <div className="mx-4 mt-3 bg-emerald-700 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
         <Smartphone className="w-5 h-5 text-emerald-200 flex-shrink-0" />
-        <p className="text-sm text-white flex-1 leading-snug">📱 Add BS16 Hub to your home screen!</p>
+        <p className="text-sm text-white flex-1 leading-snug">📱 Add Lyde Green Connect to your home screen!</p>
         <button onClick={() => setShowHow(true)}
           className="shrink-0 bg-white text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-50 transition-colors">
           How?
@@ -41,7 +41,7 @@ function AddToHomeBanner() {
               <div>
                 <div className="flex items-center gap-2 mb-3"><span className="text-lg">🍎</span><span className="font-semibold text-slate-800 text-sm">iPhone (Safari only)</span></div>
                 <ol className="space-y-2">
-                  {["Open bs-16-hub.vercel.app in Safari","Tap the Share button (□ with arrow) at the bottom","Scroll down and tap \"Add to Home Screen\"","Tap \"Add\" in the top right"].map((s, i) => (
+                  {["Open lyde-green-connect.vercel.app in Safari","Tap the Share button (□ with arrow) at the bottom","Scroll down and tap \"Add to Home Screen\"","Tap \"Add\" in the top right"].map((s, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
                       <span className="text-sm text-slate-600">{s}</span>
@@ -53,7 +53,7 @@ function AddToHomeBanner() {
               <div>
                 <div className="flex items-center gap-2 mb-3"><span className="text-lg">🤖</span><span className="font-semibold text-slate-800 text-sm">Android (Chrome)</span></div>
                 <ol className="space-y-2">
-                  {["Open bs-16-hub.vercel.app in Chrome","Tap the ⋮ menu in the top right","Tap \"Add to Home screen\"","Tap \"Add\""].map((s, i) => (
+                  {["Open lyde-green-connect.vercel.app in Chrome","Tap the ⋮ menu in the top right","Tap \"Add to Home screen\"","Tap \"Add\""].map((s, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
                       <span className="text-sm text-slate-600">{s}</span>
@@ -137,7 +137,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center">
             <span className="text-white text-[11px] font-bold">B</span>
           </div>
-          <span className="font-bold text-slate-900 tracking-tight">BS16 Hub</span>
+          <span className="font-bold text-slate-900 tracking-tight">Lyde Green Connect</span>
           <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Beta</span>
         </div>
         <Link href="/profile" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm">👤</Link>
@@ -149,7 +149,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center">
             <span className="text-white text-xs font-bold">B</span>
           </div>
-          <span className="font-bold text-slate-900 text-lg tracking-tight">BS16 Hub</span>
+          <span className="font-bold text-slate-900 text-lg tracking-tight">Lyde Green Connect</span>
           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Beta</span>
         </div>
         <div className="flex items-center gap-1">

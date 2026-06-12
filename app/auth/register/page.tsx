@@ -69,7 +69,7 @@ export default function RegisterPage() {
         <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center">
           <span className="text-white text-xs font-bold">B</span>
         </div>
-        <span className="font-bold text-slate-900 text-lg tracking-tight">BS16 Hub</span>
+        <span className="font-bold text-slate-900 text-lg tracking-tight">Lyde Green Connect</span>
       </header>
 
       <div className="flex-1 flex items-start justify-center px-5 pt-8 pb-20">
@@ -161,7 +161,7 @@ export default function RegisterPage() {
                   <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-emerald-700" /> Verify your location
                   </h1>
-                  <p className="text-sm text-slate-500 mt-1">BS16 Hub is exclusively for Lyde Green & Emersons Green residents</p>
+                  <p className="text-sm text-slate-500 mt-1">Lyde Green Connect is exclusively for Lyde Green residents</p>
                 </div>
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex gap-3">
                   <Shield className="w-4 h-4 text-emerald-700 mt-0.5 flex-shrink-0" />
@@ -225,14 +225,14 @@ export default function RegisterPage() {
                     <p className="text-sm text-red-700">{errors.general}</p>
                   </div>
                 )}
-                <p className="text-xs text-center text-slate-400 leading-relaxed">By joining, you agree to keep BS16 Hub a respectful, helpful community space.</p>
+                <p className="text-xs text-center text-slate-400 leading-relaxed">By joining, you agree to keep Lyde Green Connect a respectful, helpful community space.</p>
                 <div className="flex gap-3">
                   <button onClick={() => setStep("location")} className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm flex items-center justify-center gap-1">
                     <ChevronLeft className="w-4 h-4" /> Back
                   </button>
                   <button onClick={handleSubmit} disabled={loading}
                     className="flex-1 py-3 rounded-xl bg-emerald-700 text-white font-semibold text-sm hover:bg-emerald-800 disabled:opacity-70 flex items-center justify-center gap-2">
-                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Joining…</> : "Join BS16 Hub 🎉"}
+                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Joining…</> : "Join Lyde Green Connect 🎉"}
                   </button>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — Market Page
+// Lyde Green Connect — Market Page
 // app/market/page.tsx
 // ================================================================
 import { useState, useEffect } from "react";
@@ -28,7 +28,7 @@ function WelcomeBanner() {
           <span className="text-sm">🏡</span>
           <span className="text-xs font-bold text-emerald-200 uppercase tracking-wider">Phase 1 — Community Hub</span>
         </div>
-        <h2 className="text-white font-bold text-lg leading-snug mb-2">Welcome to BS16 Hub</h2>
+        <h2 className="text-white font-bold text-lg leading-snug mb-2">Welcome to Lyde Green Connect</h2>
         <p className="text-emerald-100 text-sm leading-relaxed mb-4">Your hyper-local space for Lyde Green and Emersons Green. Buy, sell, share and stay safe — together.</p>
         <span className="inline-flex items-center gap-2 bg-white/10 text-white/60 text-xs px-3 py-2 rounded-xl border border-white/10">
           🔨 Trader registration coming in Phase 2

@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — Neighbour Watch Page
+// Lyde Green Connect — Neighbour Watch Page
 // app/watch/page.tsx
 // ================================================================
 import { useState, useEffect } from "react";

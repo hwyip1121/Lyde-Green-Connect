@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — User Profile Page
+// Lyde Green Connect — User Profile Page
 // app/profile/page.tsx
 // ================================================================
 import { useState, useEffect } from "react";

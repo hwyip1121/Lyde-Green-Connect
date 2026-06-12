@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — Jobs Page (Homeowner posts + Trader views)
+// Lyde Green Connect — Jobs Page (Homeowner posts + Trader views)
 // app/jobs/page.tsx
 // ================================================================
 import { useState, useEffect } from "react";

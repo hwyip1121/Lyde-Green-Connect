@@ -1,6 +1,6 @@
 "use client";
 // ================================================================
-// BS16 Hub — Notice Board Page
+// Lyde Green Connect — Notice Board Page
 // app/notices/page.tsx
 // ================================================================
 import { useState, useEffect } from "react";

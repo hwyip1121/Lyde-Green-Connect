@@ -1,5 +1,5 @@
 // ================================================================
-// BS16 Hub — Root Layout
+// Lyde Green Connect — Root Layout
 // app/layout.tsx
 // ================================================================
 import type { Metadata, Viewport } from "next";
@@ -10,10 +10,10 @@ import "./globals.css";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BS16 Hub — Lyde Green & Emersons Green",
+  title: "Lyde Green Connect",
   description: "Your hyper-local community hub for Lyde Green and Emersons Green, Bristol.",
   manifest: "/manifest.json",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "BS16 Hub" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Lyde Green Connect" },
 };
 
 export const viewport: Viewport = {

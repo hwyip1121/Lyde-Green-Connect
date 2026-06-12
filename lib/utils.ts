@@ -1,5 +1,5 @@
 // ================================================================
-// BS16 Hub — Supabase Client
+// Lyde Green Connect — Supabase Client
 // lib/supabase.ts
 // ================================================================
 import { createBrowserClient } from "@supabase/ssr";
@@ -12,7 +12,7 @@ export function createClient() {
 }
 
 // ================================================================
-// BS16 Hub — Core Utilities
+// Lyde Green Connect — Core Utilities
 // lib/utils.ts
 // ================================================================
 
@@ -23,7 +23,7 @@ export function validateBS16Postcode(raw: string): { valid: boolean; cleaned: st
   if (!cleaned) return { valid: false, cleaned, error: "Please enter your postcode." };
   if (!noSpaces.startsWith("BS16")) return {
     valid: false, cleaned,
-    error: "BS16 Hub is currently exclusive to residents of Lyde Green and Emersons Green. We hope to expand to your area soon!",
+    error: "Lyde Green Connect is currently exclusive to Lyde Green residents. We hope to expand to your area soon!",
   };
   if (!/^BS16\s?[0-9][A-Z]{2}$/i.test(cleaned)) return {
     valid: false, cleaned, error: "Please enter a valid BS16 postcode (e.g. BS16 5UT).",
