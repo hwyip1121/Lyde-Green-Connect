@@ -238,6 +238,31 @@ export default function RegisterPage() {
               </div>
             )}
 
+          {step === "verify" && (
+              <div className="space-y-5 text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+                  <Check className="w-8 h-8 text-emerald-700" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-slate-900">Check your inbox!</h1>
+                  <p className="text-sm text-slate-500 mt-2">We've sent a confirmation email to</p>
+                  <p className="text-sm font-semibold text-slate-900 mt-1">{form.email}</p>
+                </div>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-left space-y-2">
+                  <p className="text-sm font-medium text-emerald-900">Next steps:</p>
+                  <ol className="text-sm text-emerald-800 space-y-1 list-decimal list-inside leading-relaxed">
+                    <li>Open the email from Lyde Green Connect</li>
+                    <li>Click the confirmation link</li>
+                    <li>You'll be signed in automatically</li>
+                  </ol>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">Can't find it? Check your spam or junk folder. The link expires in 24 hours.</p>
+                <Link href="/auth/login" className="block w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm text-center hover:bg-slate-50 transition-colors">
+                  Back to sign in
+                </Link>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
