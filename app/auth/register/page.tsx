@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     displayName: "", email: "", password: "", role: "homeowner" as "homeowner" | "trader",
-    phoneNumber: "", postcode: "", neighbourhood: "" as Neighbourhood | "",
+    phoneNumber: "", postcode: "", neighbourhood: "Lyde Green" as Neighbourhood | "",
   });
 
   const set = (k: string, v: string) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: "" })); };
@@ -35,7 +35,7 @@ export default function RegisterPage() {
     const e: Record<string, string> = {};
     const pc = validateBS16Postcode(form.postcode);
     if (!pc.valid) { e.postcode = pc.error!; setErrors(e); return false; }
-    if (!form.neighbourhood) { e.neighbourhood = "Please select your neighbourhood."; setErrors(e); return false; }
+
     return true;
   };
 
