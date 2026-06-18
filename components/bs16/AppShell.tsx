@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 const NAV = [
   { href: "/notices", label: "Notices", Icon: Pin         },
   { href: "/watch",   label: "Watch",   Icon: Eye         },
-  { href: "/market",  label: "Market",  Icon: ShoppingBag },
+  { href: "/market",  label: "Exchange",  Icon: ShoppingBag },
   { href: "/inbox",   label: "Inbox",   Icon: MessageCircle },
   { href: "/jobs",    label: "Jobs",    Icon: Briefcase, locked: true  },
   { href: "/trades",  label: "Trades",  Icon: Wrench, locked: true },
