@@ -134,9 +134,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Mobile header */}
       <header className="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center">
-            <span className="text-white text-[11px] font-bold">B</span>
-          </div>
+          <img src="/icons/icon-192.png" alt="Lyde Green Connect" className="w-7 h-7 rounded-full object-cover" />
           <span className="font-bold text-slate-900 tracking-tight">Lyde Green Connect</span>
           <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Beta</span>
         </div>
@@ -146,9 +144,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop top nav */}
       <nav className="hidden md:flex bg-white border-b border-slate-200 px-6 py-3 items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">B</span>
-          </div>
+          <img src="/icons/icon-192.png" alt="Lyde Green Connect" className="w-8 h-8 rounded-full object-cover" />
           <span className="font-bold text-slate-900 text-lg tracking-tight">Lyde Green Connect</span>
           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Beta</span>
         </div>
