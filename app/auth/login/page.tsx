@@ -26,9 +26,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-slate-200 px-5 py-4 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center">
-          <span className="text-white text-xs font-bold">B</span>
-        </div>
+        <img src="/icons/icon-192.png" alt="Lyde Green Connect" className="w-8 h-8 rounded-full object-cover" />
         <span className="font-bold text-slate-900 text-lg tracking-tight">Lyde Green Connect</span>
       </header>
 
