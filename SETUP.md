@@ -69,7 +69,7 @@ git push -u origin main --force
 
 | URL | What it is |
 |-----|-----------|
-| `/market` | Local Market — buy, sell, gift items |
+| `/market` | Community Exchange — gift, swap, sell items |
 | `/notices` | Notice Board — events, lost & found, news |
 | `/watch` | Neighbour Watch — urgent & general alerts |
 | `/jobs` | Local Jobs — homeowners post, traders contact |
@@ -83,10 +83,10 @@ git push -u origin main --force
 
 ## Inviting your first residents
 
-Share this message with the Lyde Green & Emersons Green community:
+Share this message with the Lyde Green community:
 
 > 🏡 **Lyde Green Connect is live!**
-> Your free hyper-local community app for Lyde Green and Emersons Green.
+> Your free hyper-local community app for Lyde Green residents.
 > Buy, sell, share, stay safe and connect with your neighbours.
 > 👉 [your-app.vercel.app]
 > (BS16 postcodes only — your privacy is protected)

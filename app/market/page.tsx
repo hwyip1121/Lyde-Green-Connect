@@ -29,7 +29,7 @@ function WelcomeBanner() {
           <span className="text-xs font-bold text-emerald-200 uppercase tracking-wider">Phase 1 — Community Hub</span>
         </div>
         <h2 className="text-white font-bold text-lg leading-snug mb-2">Welcome to Lyde Green Connect</h2>
-        <p className="text-emerald-100 text-sm leading-relaxed mb-4">Your hyper-local space for Lyde Green and Emersons Green. Buy, sell, share and stay safe — together.</p>
+        <p className="text-emerald-100 text-sm leading-relaxed mb-4">Your private community exchange for Lyde Green residents. Gift, swap, sell and share with your neighbours.</p>
         <span className="inline-flex items-center gap-2 bg-white/10 text-white/60 text-xs px-3 py-2 rounded-xl border border-white/10">
           🔨 Trader registration coming in Phase 2
         </span>
@@ -95,7 +95,7 @@ export default function MarketPage() {
       <div className="max-w-2xl mx-auto px-4 pt-4 pb-6">
         <WelcomeBanner />
         <div className="flex items-center justify-between mb-4">
-          <div><h1 className="text-xl font-bold text-slate-900">Local Market</h1><p className="text-sm text-slate-500">Buy, sell & gift with your neighbours</p></div>
+          <div><h1 className="text-xl font-bold text-slate-900">Community Exchange</h1><p className="text-sm text-slate-500">Gift, swap & sell with your neighbours</p></div>
           <button onClick={() => user ? setShowCreate(true) : toast.error("Sign in to post")}
             className="flex items-center gap-2 bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-800 transition-colors">
             <Plus className="w-4 h-4" /> Post Item

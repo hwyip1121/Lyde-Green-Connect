@@ -80,14 +80,14 @@ export default function JobsPage() {
 
   // Trader not approved
   if (!loading && profile?.role === "trader" && traderProfile && !traderProfile.is_approved) {
-    return <AppShell><div className="max-w-2xl mx-auto px-4 pt-4"><div className="flex items-center justify-between mb-4"><div><h1 className="text-xl font-bold text-slate-900">Local Jobs</h1><p className="text-sm text-slate-500">BS16 · Lyde Green & Emersons Green</p></div></div><TraderPendingGate rejectReason={traderProfile.reject_reason} /></div></AppShell>;
+    return <AppShell><div className="max-w-2xl mx-auto px-4 pt-4"><div className="flex items-center justify-between mb-4"><div><h1 className="text-xl font-bold text-slate-900">Local Jobs</h1><p className="text-sm text-slate-500">Lyde Green · Bristol</p></div></div><TraderPendingGate rejectReason={traderProfile.reject_reason} /></div></AppShell>;
   }
 
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 pt-4 pb-6">
         <div className="flex items-center justify-between mb-4">
-          <div><h1 className="text-xl font-bold text-slate-900">Local Jobs</h1><p className="text-sm text-slate-500">BS16 · Lyde Green & Emersons Green</p></div>
+          <div><h1 className="text-xl font-bold text-slate-900">Local Jobs</h1><p className="text-sm text-slate-500">Lyde Green · Bristol</p></div>
           {profile?.role === "homeowner" && (
             <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
               <Plus className="w-4 h-4" /> Post Job

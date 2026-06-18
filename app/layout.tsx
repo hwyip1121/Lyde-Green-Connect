@@ -11,7 +11,7 @@ const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Lyde Green Connect",
-  description: "Your hyper-local community hub for Lyde Green and Emersons Green, Bristol.",
+  description: "The private digital home for Lyde Green residents, Bristol.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Lyde Green Connect" },
 };

@@ -1,7 +1,7 @@
 {
   "name": "Lyde Green Connect",
   "short_name": "LG Connect",
-  "description": "Hyper-local community hub for Lyde Green and Emersons Green, Bristol.",
+  "description": "The private digital home for Lyde Green residents, Bristol.",
   "start_url": "/market",
   "display": "standalone",
   "background_color": "#f8fafc",
@@ -11,7 +11,7 @@
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "shortcuts": [
-    { "name": "Local Market", "url": "/market" },
+    { "name": "Community Exchange", "url": "/market" },
     { "name": "Notice Board", "url": "/notices" },
     { "name": "Neighbour Watch", "url": "/watch" },
     { "name": "Local Jobs", "url": "/jobs" }
