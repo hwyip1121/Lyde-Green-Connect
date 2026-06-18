@@ -90,7 +90,7 @@ function AddToHomeBanner() {
 
 const FEATURES = [
   { icon: <ShoppingBag className="w-6 h-6" />, color: "bg-emerald-100 text-emerald-700", title: "Local Market", desc: "Buy, sell and gift items with your neighbours. No delivery, no strangers — just your community." },
-  { icon: <Pin className="w-6 h-6" />, color: "bg-purple-100 text-purple-700", title: "Notice Board", desc: "Share local events, lost pets, and neighbourhood news with Lyde Green & Emersons Green." },
+  { icon: <Pin className="w-6 h-6" />, color: "bg-purple-100 text-purple-700", title: "Notice Board", desc: "Share local events, lost pets, and neighbourhood news with your Lyde Green neighbours." },
   { icon: <Briefcase className="w-6 h-6" />, color: "bg-blue-100 text-blue-700", title: "Local Jobs", desc: "Post small jobs for trusted local tradespeople — plumbing, gardening, maintenance and more." },
   { icon: <Wrench className="w-6 h-6" />, color: "bg-amber-100 text-amber-700", title: "Trusted Traders", desc: "Find verified local tradespeople in BS16 — all manually reviewed before joining the platform.", badge: "Phase 2" },
 ];
@@ -114,14 +114,14 @@ export default function LandingPage() {
 
       <section className="px-4 pt-10 pb-8 max-w-2xl mx-auto w-full text-center">
         <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 mb-5">
-          🏡 Lyde Green & Emersons Green · Bristol BS16
+          🌳 Lyde Green · Bristol
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-4">
           Your neighbourhood,<br />
           <span className="text-emerald-700">closer together</span>
         </h1>
         <p className="text-slate-500 text-base leading-relaxed mb-8 max-w-md mx-auto">
-          Lyde Green Connect is a hyper-local community platform for Lyde Green residents. Buy, sell, share, and support your neighbours — all in one place.
+          The private digital home for Lyde Green residents. Only verified neighbours. No ads. No algorithm. Just your community.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/auth/register" className="flex items-center justify-center gap-2 bg-emerald-700 text-white font-semibold px-6 py-3.5 rounded-2xl hover:bg-emerald-800 transition-colors text-sm shadow-sm">
