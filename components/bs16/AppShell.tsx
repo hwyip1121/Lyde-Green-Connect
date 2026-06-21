@@ -136,21 +136,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Mobile header */}
       <header className="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-2">
+        <Link href="/home" className="flex items-center gap-2">
           <img src="/icons/icon-192.png" alt="Lyde Green Connect" className="w-7 h-7 rounded-full object-cover" />
           <span className="font-bold text-slate-900 tracking-tight">Lyde Green Connect</span>
           <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Beta</span>
-        </div>
+        </Link>
         <Link href="/profile" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm">👤</Link>
       </header>
 
       {/* Desktop top nav */}
       <nav className="hidden md:flex bg-white border-b border-slate-200 px-6 py-3 items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-3">
+        <Link href="/home" className="flex items-center gap-3">
           <img src="/icons/icon-192.png" alt="Lyde Green Connect" className="w-8 h-8 rounded-full object-cover" />
           <span className="font-bold text-slate-900 text-lg tracking-tight">Lyde Green Connect</span>
           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Beta</span>
-        </div>
+        </Link>
         <div className="flex items-center gap-1">
           {NAV.map(({ href, label, Icon, locked }) =>
             locked ? (
