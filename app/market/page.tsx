@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import AppShell from "@/components/bs16/AppShell";
 import { createClient } from "@/lib/supabase";
 import { moderateContent, checkRateLimit, formatResetTime, formatPrice, relativeTime, NEIGHBOURHOODS, type Neighbourhood } from "@/lib/utils";
-import { Plus, Package, X, Loader2, Flag } from "lucide-react";
+import { Plus, Package, X, Loader2, Flag, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const FILTERS = ["All", "For Sale", "Free / Swap", "Ask / Wanted", "Available Only"] as const;
@@ -148,6 +148,8 @@ export default function MarketPage() {
 
 function CreateListingModal({ user, onClose, onCreated }: { user: any; onClose: () => void; onCreated: () => void }) {
   const [form, setForm] = useState({ title: "", description: "", price: "", isFreeSwap: false, isWanted: false });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -161,13 +163,34 @@ function CreateListingModal({ user, onClose, onCreated }: { user: any; onClose: 
     try {
       const supabase = createClient();
       const { data: profile } = await supabase.from("profiles").select("neighbourhood").eq("id", user.id).single();
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        const ext = imageFile.name.split(".").pop();
+        const path = `${user.id}/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("market-images")
+          .upload(path, imageFile, { upsert: false });
+        if (uploadError) { setError("Image upload failed. Please try again."); setLoading(false); return; }
+        const { data: urlData } = supabase.storage.from("market-images").getPublicUrl(path);
+        imageUrl = urlData.publicUrl;
+      }
       await supabase.from("market_listings").insert({
         user_id: user.id, title: titleMod.sanitised, description: descMod.sanitised,
         price_pence: form.isFreeSwap ? null : form.price ? Math.round(parseFloat(form.price) * 100) : 0,
         is_free_swap: form.isFreeSwap, is_wanted: form.isWanted, neighbourhood: profile?.neighbourhood || "Lyde Green",
+        image_url: imageUrl,
       });
       onCreated();
     } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { setError("Image must be under 5MB."); return; }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setError("");
   };
 
   return (
@@ -193,6 +216,25 @@ function CreateListingModal({ user, onClose, onCreated }: { user: any; onClose: 
             })}
             </div>
             {!form.isFreeSwap && !form.isWanted && <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">£</span><input type="number" min="0" step="0.01" placeholder="0.00" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} className="w-full pl-7 pr-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>}
+          </div>
+          {/* Photo upload */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-700">Photo <span className="text-slate-400 font-normal">(optional)</span></label>
+            {imagePreview ? (
+              <div className="relative rounded-xl overflow-hidden border border-slate-200">
+                <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover" />
+                <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-2 right-2 w-7 h-7 bg-slate-900/60 rounded-full flex items-center justify-center text-white hover:bg-slate-900/80">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center gap-2 w-full h-28 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/40 transition-colors">
+                <ImageIcon className="w-6 h-6 text-slate-400" />
+                <span className="text-sm text-slate-500">Tap to add a photo</span>
+                <span className="text-xs text-slate-400">JPG, PNG or WEBP · max 5MB</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImageChange} />
+              </label>
+            )}
           </div>
           {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">{error}</p>}
         </div>
