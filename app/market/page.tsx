@@ -61,44 +61,99 @@ function FlagBtn({ targetTable, targetId }: { targetTable: string; targetId: str
   return <button onClick={() => setState("confirm")} className="opacity-30 hover:opacity-100 transition-opacity"><Flag className="w-3 h-3 text-slate-500" /></button>;
 }
 
-// ── Listing Carousel ─────────────────────────────────────────────
-function ListingCarousel({ listing }: { listing: any }) {
-  const [idx, setIdx] = useState(0);
-  const imgs: string[] = listing.image_urls?.length ? listing.image_urls : listing.image_url ? [listing.image_url] : [];
+// ── Lightbox ─────────────────────────────────────────────────────
+function Lightbox({ imgs, startIdx, onClose }: { imgs: string[]; startIdx: number; onClose: () => void }) {
+  const [idx, setIdx] = useState(startIdx);
   const startX = useRef<number | null>(null);
 
-  const prev = () => setIdx(i => Math.max(0, i - 1));
-  const next = () => setIdx(i => Math.min(imgs.length - 1, i + 1));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setIdx(i => Math.min(imgs.length - 1, i + 1));
+      if (e.key === "ArrowLeft") setIdx(i => Math.max(0, i - 1));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [imgs.length, onClose]);
 
   const onTouchStart = (e: React.TouchEvent) => { startX.current = e.touches[0].clientX; };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (startX.current === null) return;
     const diff = startX.current - e.changedTouches[0].clientX;
-    if (diff > 40) next();
-    else if (diff < -40) prev();
+    if (diff > 40) setIdx(i => Math.min(imgs.length - 1, i + 1));
+    else if (diff < -40) setIdx(i => Math.max(0, i - 1));
     startX.current = null;
   };
 
   return (
-    <div className="relative h-36 bg-slate-100 flex-shrink-0 overflow-hidden"
+    <div className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center"
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      {imgs.length > 0
-        ? <img src={imgs[idx]} alt={listing.title} className="w-full h-full object-cover" />
-        : <div className="w-full h-full flex items-center justify-center text-3xl text-slate-300">📦</div>}
+      <button onClick={onClose} className="absolute top-4 right-4 w-9 h-9 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 z-10">
+        <X className="w-5 h-5" />
+      </button>
+      {imgs.length > 1 && <span className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">{idx + 1} / {imgs.length}</span>}
+      <img src={imgs[idx]} alt={`Photo ${idx + 1}`} className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />
       {imgs.length > 1 && (
         <>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {imgs.map((_, i) => <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? "bg-white" : "bg-white/40"}`} />)}
+          {idx > 0 && <button onClick={() => setIdx(i => i - 1)} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white text-xl hover:bg-white/20">‹</button>}
+          {idx < imgs.length - 1 && <button onClick={() => setIdx(i => i + 1)} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white text-xl hover:bg-white/20">›</button>}
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {imgs.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === idx ? "bg-white" : "bg-white/30"}`} />)}
           </div>
-          {idx > 0 && <button onClick={prev} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900/40 rounded-full flex items-center justify-center text-white text-xs">‹</button>}
-          {idx < imgs.length - 1 && <button onClick={next} className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900/40 rounded-full flex items-center justify-center text-white text-xs">›</button>}
         </>
       )}
-      {listing.status === "gone" && <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center"><span className="bg-white text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">GONE</span></div>}
-      <div className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${listing.is_wanted ? "bg-blue-600 text-white" : listing.is_free_swap || (listing.price_pence ?? 0) === 0 ? "bg-emerald-600 text-white" : "bg-white text-slate-800 border border-slate-200"}`}>
-        {listing.is_wanted ? "Ask / Wanted" : formatPrice(listing.price_pence, listing.is_free_swap)}
-      </div>
     </div>
+  );
+}
+
+// ── Listing Carousel ─────────────────────────────────────────────
+function ListingCarousel({ listing }: { listing: any }) {
+  const [idx, setIdx] = useState(0);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const imgs: string[] = listing.image_urls?.length ? listing.image_urls : listing.image_url ? [listing.image_url] : [];
+  const startX = useRef<number | null>(null);
+  const didSwipe = useRef(false);
+
+  const prev = (e: React.MouseEvent) => { e.stopPropagation(); setIdx(i => Math.max(0, i - 1)); };
+  const next = (e: React.MouseEvent) => { e.stopPropagation(); setIdx(i => Math.min(imgs.length - 1, i + 1)); };
+
+  const onTouchStart = (e: React.TouchEvent) => { startX.current = e.touches[0].clientX; didSwipe.current = false; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (startX.current === null) return;
+    const diff = startX.current - e.changedTouches[0].clientX;
+    if (diff > 40) { setIdx(i => Math.min(imgs.length - 1, i + 1)); didSwipe.current = true; }
+    else if (diff < -40) { setIdx(i => Math.max(0, i - 1)); didSwipe.current = true; }
+    startX.current = null;
+  };
+
+  const handleImageClick = () => {
+    if (didSwipe.current || imgs.length === 0) return;
+    setLightboxIdx(idx);
+  };
+
+  return (
+    <>
+      <div className="relative h-36 bg-slate-100 flex-shrink-0 overflow-hidden"
+        onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {imgs.length > 0
+          ? <img src={imgs[idx]} alt={listing.title} className="w-full h-full object-cover cursor-zoom-in" onClick={handleImageClick} />
+          : <div className="w-full h-full flex items-center justify-center text-3xl text-slate-300">📦</div>}
+        {imgs.length > 1 && (
+          <>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              {imgs.map((_, i) => <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? "bg-white" : "bg-white/40"}`} />)}
+            </div>
+            {idx > 0 && <button onClick={prev} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900/40 rounded-full flex items-center justify-center text-white text-xs">‹</button>}
+            {idx < imgs.length - 1 && <button onClick={next} className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900/40 rounded-full flex items-center justify-center text-white text-xs">›</button>}
+          </>
+        )}
+        {listing.status === "gone" && <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center"><span className="bg-white text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">GONE</span></div>}
+        <div className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${listing.is_wanted ? "bg-blue-600 text-white" : listing.is_free_swap || (listing.price_pence ?? 0) === 0 ? "bg-emerald-600 text-white" : "bg-white text-slate-800 border border-slate-200"}`}>
+          {listing.is_wanted ? "Ask / Wanted" : formatPrice(listing.price_pence, listing.is_free_swap)}
+        </div>
+      </div>
+      {lightboxIdx !== null && <Lightbox imgs={imgs} startIdx={lightboxIdx} onClose={() => setLightboxIdx(null)} />}
+    </>
   );
 }
 
