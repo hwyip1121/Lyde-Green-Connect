@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import AppShell from "@/components/bs16/AppShell";
 import { createClient } from "@/lib/supabase";
 import { moderateContent, checkRateLimit, formatResetTime, relativeTime, NOTICE_TAGS, type NoticeTag } from "@/lib/utils";
-import { Plus, Pin, X, Loader2, Flag } from "lucide-react";
+import { Plus, Pin, X, Loader2, Flag, EyeOff, Eye, Trash2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 const TAG_CONFIG: Record<NoticeTag, { emoji: string; stripe: string; bg: string; text: string; border: string }> = {
@@ -17,7 +17,7 @@ const TAG_CONFIG: Record<NoticeTag, { emoji: string; stripe: string; bg: string;
 };
 
 // ── Notice Card — own component so useState is legal ─────────────
-function NoticeCard({ post, userId, onFlagged }: { post: any; userId: string; onFlagged: () => void }) {
+function NoticeCard({ post, userId, isAdmin, onFlagged, onRefresh }: { post: any; userId: string; isAdmin: boolean; onFlagged: () => void; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const [flagState, setFlagState] = useState<"idle"|"confirm"|"done">("idle");
   const cfg = TAG_CONFIG[post.tag as NoticeTag];
@@ -32,7 +32,7 @@ function NoticeCard({ post, userId, onFlagged }: { post: any; userId: string; on
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className={`bg-white rounded-2xl border overflow-hidden ${!post.is_visible ? "border-orange-300 bg-orange-50/30" : "border-slate-200"}`}>
       <div className={`h-1 ${cfg.stripe}`} />
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
@@ -46,6 +46,7 @@ function NoticeCard({ post, userId, onFlagged }: { post: any; userId: string; on
               : <button onClick={() => setFlagState("confirm")} className="opacity-30 hover:opacity-100 transition-opacity"><Flag className="w-3 h-3 text-slate-500" /></button>}
           </div>
         </div>
+        {!post.is_visible && <div className="flex items-center gap-1.5 bg-orange-100 text-orange-700 text-[10px] font-semibold px-2 py-1 rounded-lg mb-2"><EyeOff className="w-3 h-3" />Hidden from residents</div>}
         <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1">{post.title}</h3>
         <p className={`text-sm text-slate-600 leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}>{post.body}</p>
         {post.body.length > 180 && (
@@ -61,7 +62,54 @@ function NoticeCard({ post, userId, onFlagged }: { post: any; userId: string; on
             {post.profiles?.display_name || "Neighbour"} · <strong className="text-slate-600">{post.neighbourhood}</strong>
           </span>
         </div>
+        {isAdmin && <AdminNoticeControls post={post} onRefresh={onRefresh} />}
       </div>
+    </div>
+  );
+}
+
+// ── Admin Notice Controls ─────────────────────────────────────────
+function AdminNoticeControls({ post, onRefresh }: { post: any; onRefresh: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const toggleVisibility = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("notice_posts").update({ is_visible: !post.is_visible }).eq("id", post.id);
+    toast.success(post.is_visible ? "Notice hidden" : "Notice restored");
+    onRefresh();
+    setBusy(false);
+  };
+
+  const deletePost = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("notice_posts").delete().eq("id", post.id);
+    toast.success("Notice deleted");
+    onRefresh();
+    setBusy(false);
+  };
+
+  if (confirmDelete) return (
+    <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-xl p-2 mt-2">
+      <ShieldAlert className="w-3.5 h-3.5 text-red-600 shrink-0" />
+      <span className="text-[10px] text-red-700 font-medium flex-1">Delete permanently?</span>
+      <button onClick={deletePost} disabled={busy} className="text-[10px] font-bold px-2 py-1 bg-red-600 text-white rounded-lg disabled:opacity-50">Yes</button>
+      <button onClick={() => setConfirmDelete(false)} className="text-[10px] text-slate-500">No</button>
+    </div>
+  );
+
+  return (
+    <div className="flex gap-1.5 mt-2 pt-2 border-t border-slate-100">
+      <button onClick={toggleVisibility} disabled={busy}
+        className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-colors disabled:opacity-50 ${post.is_visible ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"}`}>
+        {post.is_visible ? <><EyeOff className="w-3 h-3" />Hide</> : <><Eye className="w-3 h-3" />Restore</>}
+      </button>
+      <button onClick={() => setConfirmDelete(true)} disabled={busy}
+        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50">
+        <Trash2 className="w-3 h-3" />Delete
+      </button>
     </div>
   );
 }
@@ -147,19 +195,34 @@ export default function NoticesPage() {
   const [activeTag, setActiveTag] = useState<NoticeTag | "All">("All");
   const [showCreate, setShowCreate] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    loadPosts();
+    supabase.auth.getUser().then(async ({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", data.user.id).single();
+        const admin = profile?.is_admin === true;
+        setIsAdmin(admin);
+        loadPosts(admin);
+      } else {
+        loadPosts(false);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    loadPosts(isAdmin);
   }, [activeTag]);
 
-  const loadPosts = async () => {
+  const loadPosts = async (adminMode = false) => {
     setLoading(true);
     const supabase = createClient();
     let query = supabase.from("notice_posts")
       .select("*, profiles:user_id(display_name, neighbourhood)")
-      .eq("is_visible", true).order("created_at", { ascending: false });
+      .order("created_at", { ascending: false });
+    if (!adminMode) query = query.eq("is_visible", true);
     if (activeTag !== "All") query = query.eq("tag", activeTag);
     const { data } = await query;
     setPosts(data || []); setLoading(false);
@@ -199,7 +262,7 @@ export default function NoticesPage() {
           <div className="text-center py-16"><Pin className="w-10 h-10 text-slate-300 mx-auto mb-3" /><p className="text-slate-500 font-medium">Nothing posted yet</p><p className="text-slate-400 text-sm mt-1">Share something with your neighbours!</p></div>
         ) : (
           <div className="space-y-3">
-            {posts.map(post => <NoticeCard key={post.id} post={post} userId={user?.id} onFlagged={loadPosts} />)}
+            {posts.map(post => <NoticeCard key={post.id} post={post} userId={user?.id} isAdmin={isAdmin} onFlagged={() => loadPosts(isAdmin)} onRefresh={() => loadPosts(isAdmin)} />)}
           </div>
         )}
       </div>
