@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import AppShell from "@/components/bs16/AppShell";
 import { createClient } from "@/lib/supabase";
 import { moderateContent, checkRateLimit, formatResetTime, relativeTime } from "@/lib/utils";
-import { Plus, ArrowLeftRight, X, Loader2 } from "lucide-react";
+import { Plus, ArrowLeftRight, X, Loader2, EyeOff, Eye, Trash2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -32,7 +32,7 @@ const CAT_CONFIG: Record<SwapCategory, { emoji: string; stripe: string; bg: stri
   "Other":     { emoji: "✨", stripe: "bg-slate-400",   bg: "bg-slate-50",    text: "text-slate-700",   border: "border-slate-200"   },
 };
 
-function SwapCard({ swap, userId }: { swap: any; userId: string }) {
+function SwapCard({ swap, userId, isAdmin, onRefresh }: { swap: any; userId: string; isAdmin: boolean; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const router = useRouter();
   const cfg = CAT_CONFIG[swap.category as SwapCategory];
@@ -45,7 +45,7 @@ function SwapCard({ swap, userId }: { swap: any; userId: string }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className={`bg-white rounded-2xl border overflow-hidden ${!swap.is_visible ? "border-orange-300 bg-orange-50/30" : "border-slate-200"}`}>
       <div className={`h-1 ${cfg.stripe}`} />
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
@@ -54,6 +54,7 @@ function SwapCard({ swap, userId }: { swap: any; userId: string }) {
           </span>
           <span className="text-[10px] text-slate-400">{relativeTime(swap.created_at)}</span>
         </div>
+        {!swap.is_visible && <div className="flex items-center gap-1.5 bg-orange-100 text-orange-700 text-[10px] font-semibold px-2 py-1 rounded-lg mb-2"><EyeOff className="w-3 h-3" />Hidden from residents</div>}
         <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-2">{swap.title}</h3>
         <div className="space-y-1.5 mb-3">
           <div className="flex items-start gap-2">
@@ -91,7 +92,54 @@ function SwapCard({ swap, userId }: { swap: any; userId: string }) {
             </button>
           )}
         </div>
+        {isAdmin && <AdminSwapControls swap={swap} onRefresh={onRefresh} />}
       </div>
+    </div>
+  );
+}
+
+// ── Admin Swap Controls ──────────────────────────────────────────
+function AdminSwapControls({ swap, onRefresh }: { swap: any; onRefresh: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const toggleVisibility = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("skill_swaps").update({ is_visible: !swap.is_visible }).eq("id", swap.id);
+    toast.success(swap.is_visible ? "Swap hidden" : "Swap restored");
+    onRefresh();
+    setBusy(false);
+  };
+
+  const deleteSwap = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("skill_swaps").delete().eq("id", swap.id);
+    toast.success("Swap deleted");
+    onRefresh();
+    setBusy(false);
+  };
+
+  if (confirmDelete) return (
+    <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-xl p-2 mt-2">
+      <ShieldAlert className="w-3.5 h-3.5 text-red-600 shrink-0" />
+      <span className="text-[10px] text-red-700 font-medium flex-1">Delete permanently?</span>
+      <button onClick={deleteSwap} disabled={busy} className="text-[10px] font-bold px-2 py-1 bg-red-600 text-white rounded-lg disabled:opacity-50">Yes</button>
+      <button onClick={() => setConfirmDelete(false)} className="text-[10px] text-slate-500">No</button>
+    </div>
+  );
+
+  return (
+    <div className="flex gap-1.5 mt-2 pt-2 border-t border-slate-100">
+      <button onClick={toggleVisibility} disabled={busy}
+        className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-colors disabled:opacity-50 ${swap.is_visible ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"}`}>
+        {swap.is_visible ? <><EyeOff className="w-3 h-3" />Hide</> : <><Eye className="w-3 h-3" />Restore</>}
+      </button>
+      <button onClick={() => setConfirmDelete(true)} disabled={busy}
+        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50">
+        <Trash2 className="w-3 h-3" />Delete
+      </button>
     </div>
   );
 }
@@ -189,18 +237,33 @@ export default function SwapPage() {
   const [activeCategory, setActiveCategory] = useState<SwapCategory | "All">("All");
   const [showCreate, setShowCreate] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    loadSwaps();
+    supabase.auth.getUser().then(async ({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", data.user.id).single();
+        const admin = profile?.is_admin === true;
+        setIsAdmin(admin);
+        loadSwaps(admin);
+      } else {
+        loadSwaps(false);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    loadSwaps(isAdmin);
   }, [activeCategory]);
 
-  const loadSwaps = async () => {
+  const loadSwaps = async (adminMode = false) => {
     setLoading(true);
     const supabase = createClient();
     let query = supabase.from("skill_swaps").select("*, profiles:user_id(display_name)")
-      .eq("status", "active").order("created_at", { ascending: false });
+      .order("created_at", { ascending: false });
+    if (!adminMode) query = query.eq("status", "active").eq("is_visible", true);
     if (activeCategory !== "All") query = query.eq("category", activeCategory);
     const { data } = await query;
     setSwaps(data || []); setLoading(false);
@@ -251,7 +314,7 @@ export default function SwapPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {swaps.map(swap => <SwapCard key={swap.id} swap={swap} userId={user?.id || ""} />)}
+            {swaps.map(swap => <SwapCard key={swap.id} swap={swap} userId={user?.id || ""} isAdmin={isAdmin} onRefresh={() => loadSwaps(isAdmin)} />)}
           </div>
         )}
       </div>

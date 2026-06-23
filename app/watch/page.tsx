@@ -7,11 +7,11 @@ import { useState, useEffect } from "react";
 import AppShell from "@/components/bs16/AppShell";
 import { createClient } from "@/lib/supabase";
 import { moderateContent, checkRateLimit, formatResetTime, relativeTime } from "@/lib/utils";
-import { Plus, X, Loader2, Flag } from "lucide-react";
+import { Plus, X, Loader2, Flag, EyeOff, Eye, Trash2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Alert card — own component ────────────────────────────────────
-function AlertCard({ alert, userId, onFlagged }: { alert: any; userId: string; onFlagged: () => void }) {
+function AlertCard({ alert, userId, isAdmin, onFlagged, onRefresh }: { alert: any; userId: string; isAdmin: boolean; onFlagged: () => void; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const [flagState, setFlagState] = useState<"idle"|"confirm"|"done">("idle");
   const isUrgent = alert.urgency === "urgent";
@@ -26,7 +26,7 @@ function AlertCard({ alert, userId, onFlagged }: { alert: any; userId: string; o
   };
 
   return (
-    <div className={`bg-white rounded-2xl overflow-hidden border-2 ${isUrgent ? "border-red-300 shadow-sm shadow-red-100" : "border-amber-200"}`}>
+    <div className={`bg-white rounded-2xl overflow-hidden border-2 ${!alert.is_visible ? "border-orange-300 bg-orange-50/30" : isUrgent ? "border-red-300 shadow-sm shadow-red-100" : "border-amber-200"}`}>
       <div className={`${isUrgent ? "bg-red-500" : "bg-amber-400"} px-4 py-2.5 flex items-center gap-2`}>
         <span className="text-sm">{isUrgent ? "🚨" : "⚠️"}</span>
         <span className={`text-xs font-bold uppercase tracking-wide ${isUrgent ? "text-white" : "text-amber-900"}`}>
@@ -40,6 +40,7 @@ function AlertCard({ alert, userId, onFlagged }: { alert: any; userId: string; o
         </div>
       </div>
       <div className="p-4">
+        {!alert.is_visible && <div className="flex items-center gap-1.5 bg-orange-100 text-orange-700 text-[10px] font-semibold px-2 py-1 rounded-lg mb-2"><EyeOff className="w-3 h-3" />Hidden from residents</div>}
         <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-2">{alert.title}</h3>
         <p className={`text-sm text-slate-600 leading-relaxed ${!expanded ? "line-clamp-3" : ""}`}>{alert.body}</p>
         {alert.body.length > 180 && (
@@ -55,7 +56,54 @@ function AlertCard({ alert, userId, onFlagged }: { alert: any; userId: string; o
             {alert.profiles?.display_name || "Neighbour"} · <strong className="text-slate-600">{alert.neighbourhood}</strong>
           </span>
         </div>
+        {isAdmin && <AdminAlertControls alert={alert} onRefresh={onRefresh} />}
       </div>
+    </div>
+  );
+}
+
+// ── Admin Alert Controls ─────────────────────────────────────────
+function AdminAlertControls({ alert, onRefresh }: { alert: any; onRefresh: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const toggleVisibility = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("watch_alerts").update({ is_visible: !alert.is_visible }).eq("id", alert.id);
+    toast.success(alert.is_visible ? "Alert hidden" : "Alert restored");
+    onRefresh();
+    setBusy(false);
+  };
+
+  const deleteAlert = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("watch_alerts").delete().eq("id", alert.id);
+    toast.success("Alert deleted");
+    onRefresh();
+    setBusy(false);
+  };
+
+  if (confirmDelete) return (
+    <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-xl p-2 mt-2">
+      <ShieldAlert className="w-3.5 h-3.5 text-red-600 shrink-0" />
+      <span className="text-[10px] text-red-700 font-medium flex-1">Delete permanently?</span>
+      <button onClick={deleteAlert} disabled={busy} className="text-[10px] font-bold px-2 py-1 bg-red-600 text-white rounded-lg disabled:opacity-50">Yes</button>
+      <button onClick={() => setConfirmDelete(false)} className="text-[10px] text-slate-500">No</button>
+    </div>
+  );
+
+  return (
+    <div className="flex gap-1.5 mt-2 pt-2 border-t border-slate-100">
+      <button onClick={toggleVisibility} disabled={busy}
+        className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-colors disabled:opacity-50 ${alert.is_visible ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"}`}>
+        {alert.is_visible ? <><EyeOff className="w-3 h-3" />Hide</> : <><Eye className="w-3 h-3" />Restore</>}
+      </button>
+      <button onClick={() => setConfirmDelete(true)} disabled={busy}
+        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50">
+        <Trash2 className="w-3 h-3" />Delete
+      </button>
     </div>
   );
 }
@@ -145,19 +193,34 @@ export default function WatchPage() {
   const [urgencyFilter, setUrgencyFilter] = useState<"all"|"urgent"|"general">("all");
   const [showCreate, setShowCreate] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    loadAlerts();
+    supabase.auth.getUser().then(async ({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", data.user.id).single();
+        const admin = profile?.is_admin === true;
+        setIsAdmin(admin);
+        loadAlerts(admin);
+      } else {
+        loadAlerts(false);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    loadAlerts(isAdmin);
   }, [urgencyFilter]);
 
-  const loadAlerts = async () => {
+  const loadAlerts = async (adminMode = false) => {
     setLoading(true);
     const supabase = createClient();
     let query = supabase.from("watch_alerts")
       .select("*, profiles:user_id(display_name, neighbourhood)")
-      .eq("is_visible", true).order("created_at", { ascending: false });
+      .order("created_at", { ascending: false });
+    if (!adminMode) query = query.eq("is_visible", true);
     if (urgencyFilter !== "all") query = query.eq("urgency", urgencyFilter);
     const { data } = await query;
     setAlerts(data || []); setLoading(false);
@@ -195,7 +258,7 @@ export default function WatchPage() {
           <div className="text-center py-16"><div className="text-4xl mb-3">🏡</div><p className="text-slate-500 font-medium">All quiet in the neighbourhood</p></div>
         ) : (
           <div className="space-y-3">
-            {alerts.map(alert => <AlertCard key={alert.id} alert={alert} userId={user?.id} onFlagged={loadAlerts} />)}
+            {alerts.map(alert => <AlertCard key={alert.id} alert={alert} userId={user?.id} isAdmin={isAdmin} onFlagged={() => loadAlerts(isAdmin)} onRefresh={() => loadAlerts(isAdmin)} />)}
           </div>
         )}
       </div>
