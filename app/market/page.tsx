@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import AppShell from "@/components/bs16/AppShell";
 import { createClient } from "@/lib/supabase";
 import { moderateContent, checkRateLimit, formatResetTime, formatPrice, relativeTime, NEIGHBOURHOODS, type Neighbourhood } from "@/lib/utils";
-import { Plus, Package, X, Loader2, Flag, ImageIcon } from "lucide-react";
+import { Plus, Package, X, Loader2, Flag, ImageIcon, EyeOff, Eye, Trash2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 const FILTERS = ["All", "For Sale", "Free / Swap", "Ask / Wanted", "Available Only"] as const;
@@ -163,18 +163,30 @@ export default function MarketPage() {
   const [filter, setFilter] = useState<typeof FILTERS[number]>("All");
   const [showCreate, setShowCreate] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    loadListings();
+    supabase.auth.getUser().then(async ({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", data.user.id).single();
+        const admin = profile?.is_admin === true;
+        setIsAdmin(admin);
+        loadListings(admin);
+      } else {
+        loadListings(false);
+      }
+    });
   }, []);
 
-  const loadListings = async () => {
+  const loadListings = async (adminMode = false) => {
     const supabase = createClient();
-    const { data } = await supabase.from("market_listings")
+    let query = supabase.from("market_listings")
       .select("*, profiles:user_id(display_name, neighbourhood)")
-      .eq("is_visible", true).order("created_at", { ascending: false });
+      .order("created_at", { ascending: false });
+    if (!adminMode) query = query.eq("is_visible", true);
+    const { data } = await query;
     setListings(data || []); setLoading(false);
   };
 
@@ -212,19 +224,21 @@ export default function MarketPage() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {filtered.map(l => (
-              <div key={l.id} className={`bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col ${l.status === "gone" ? "opacity-60" : ""}`}>
+              <div key={l.id} className={`bg-white rounded-2xl border overflow-hidden flex flex-col ${l.status === "gone" ? "opacity-60" : ""} ${!l.is_visible ? "border-orange-300 bg-orange-50/30" : "border-slate-200"}`}>
                 <ListingCarousel listing={l} />
                 <div className="p-3 flex flex-col flex-1 gap-2">
+                  {!l.is_visible && <div className="flex items-center gap-1.5 bg-orange-100 text-orange-700 text-[10px] font-semibold px-2 py-1 rounded-lg"><EyeOff className="w-3 h-3" />Hidden from residents</div>}
                   <div><h3 className="text-sm font-semibold text-slate-900 leading-tight line-clamp-2">{l.title}</h3>{l.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{l.description}</p>}</div>
                   <span className="text-[10px] text-slate-500">📍 {l.profiles?.neighbourhood || l.neighbourhood}</span>
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-[10px] text-slate-400">{relativeTime(l.created_at)}</span>
                     <FlagBtn targetTable="market_listings" targetId={l.id} />
                   </div>
-                  {l.user_id !== user?.id && l.status !== "gone" && (
+                  {l.user_id !== user?.id && l.status !== "gone" && l.is_visible && (
                     <a href={`/inbox?new=1&listing_id=${l.id}&listing_type=market&receiver_id=${l.user_id}&receiver_name=${encodeURIComponent(l.profiles?.display_name || "Seller")}`}
                       className="w-full py-2 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-xl hover:bg-emerald-100 border border-emerald-200 block text-center">💬 Message Seller</a>
                   )}
+                  {isAdmin && <AdminControls listing={l} onRefresh={() => loadListings(true)} />}
                 </div>
               </div>
             ))}
@@ -233,6 +247,52 @@ export default function MarketPage() {
       </div>
       {showCreate && <CreateListingModal user={user} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); loadListings(); }} />}
     </AppShell>
+  );
+}
+
+// ── Admin Controls ───────────────────────────────────────────────
+function AdminControls({ listing, onRefresh }: { listing: any; onRefresh: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const toggleVisibility = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("market_listings").update({ is_visible: !listing.is_visible }).eq("id", listing.id);
+    toast.success(listing.is_visible ? "Listing hidden" : "Listing restored");
+    onRefresh();
+    setBusy(false);
+  };
+
+  const deleteListing = async () => {
+    setBusy(true);
+    const supabase = createClient();
+    await supabase.from("market_listings").delete().eq("id", listing.id);
+    toast.success("Listing deleted");
+    onRefresh();
+    setBusy(false);
+  };
+
+  if (confirmDelete) return (
+    <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-xl p-2">
+      <ShieldAlert className="w-3.5 h-3.5 text-red-600 shrink-0" />
+      <span className="text-[10px] text-red-700 font-medium flex-1">Delete permanently?</span>
+      <button onClick={deleteListing} disabled={busy} className="text-[10px] font-bold px-2 py-1 bg-red-600 text-white rounded-lg disabled:opacity-50">Yes</button>
+      <button onClick={() => setConfirmDelete(false)} className="text-[10px] text-slate-500">No</button>
+    </div>
+  );
+
+  return (
+    <div className="flex gap-1.5 pt-1 border-t border-slate-100">
+      <button onClick={toggleVisibility} disabled={busy}
+        className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-colors disabled:opacity-50 ${listing.is_visible ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"}`}>
+        {listing.is_visible ? <><EyeOff className="w-3 h-3" />Hide</> : <><Eye className="w-3 h-3" />Restore</>}
+      </button>
+      <button onClick={() => setConfirmDelete(true)} disabled={busy}
+        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50">
+        <Trash2 className="w-3 h-3" />Delete
+      </button>
+    </div>
   );
 }
 
