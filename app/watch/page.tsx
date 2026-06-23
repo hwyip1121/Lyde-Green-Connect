@@ -3,12 +3,103 @@
 // Lyde Green Connect — Neighbour Watch Page
 // app/watch/page.tsx
 // ================================================================
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AppShell from "@/components/bs16/AppShell";
 import { createClient } from "@/lib/supabase";
 import { moderateContent, checkRateLimit, formatResetTime, relativeTime } from "@/lib/utils";
-import { Plus, X, Loader2, Flag, EyeOff, Eye, Trash2, ShieldAlert } from "lucide-react";
+import { Plus, X, Loader2, Flag, EyeOff, Eye, Trash2, ShieldAlert, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
+
+// ── Notification Opt-in Banner ───────────────────────────────────
+function NotificationBanner({ userId }: { userId: string }) {
+  const [status, setStatus] = useState<"idle"|"subscribed"|"denied"|"loading">("idle");
+  const [subEndpoint, setSubEndpoint] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) { setStatus("denied"); return; }
+    if (Notification.permission === "denied") { setStatus("denied"); return; }
+    navigator.serviceWorker.ready.then(reg => {
+      reg.pushManager.getSubscription().then(sub => {
+        if (sub) { setStatus("subscribed"); setSubEndpoint(sub.endpoint); }
+      });
+    });
+  }, []);
+
+  const subscribe = async () => {
+    setStatus("loading");
+    try {
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") { setStatus("denied"); return; }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      });
+      await fetch("/api/push-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: sub.toJSON(), userId }),
+      });
+      setSubEndpoint(sub.endpoint);
+      setStatus("subscribed");
+      toast.success("Watch alerts enabled for this device!");
+    } catch (err) {
+      setStatus("idle");
+      toast.error("Could not enable notifications.");
+    }
+  };
+
+  const unsubscribe = async () => {
+    setStatus("loading");
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await sub.unsubscribe();
+        await fetch("/api/push-subscription", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+      }
+      setSubEndpoint(null);
+      setStatus("idle");
+      toast.success("Watch notifications turned off.");
+    } catch {
+      setStatus("idle");
+    }
+  };
+
+  if (status === "denied") return null;
+
+  if (status === "subscribed") return (
+    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 mb-4">
+      <div className="flex items-center gap-2">
+        <Bell className="w-4 h-4 text-emerald-600 shrink-0" />
+        <span className="text-xs text-emerald-800 font-medium">Watch alerts enabled for this device</span>
+      </div>
+      <button onClick={unsubscribe} disabled={status === "loading"} className="text-[10px] text-emerald-600 hover:text-emerald-800 font-medium underline">Turn off</button>
+    </div>
+  );
+
+  return (
+    <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-4">
+      <div className="flex items-center gap-2">
+        <BellOff className="w-4 h-4 text-blue-600 shrink-0" />
+        <div>
+          <p className="text-xs text-blue-800 font-semibold">Get notified about Watch alerts</p>
+          <p className="text-[10px] text-blue-600 mt-0.5">Enable push notifications for this device</p>
+        </div>
+      </div>
+      <button onClick={subscribe} disabled={status === "loading"}
+        className="shrink-0 flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors">
+        {status === "loading" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Bell className="w-3 h-3" />}
+        Enable
+      </button>
+    </div>
+  );
+}
 
 // ── Alert card — own component ────────────────────────────────────
 function AlertCard({ alert, userId, isAdmin, onFlagged, onRefresh }: { alert: any; userId: string; isAdmin: boolean; onFlagged: () => void; onRefresh: () => void }) {
@@ -128,6 +219,17 @@ function CreateAlertModal({ user, onClose, onCreated }: { user: any; onClose: ()
         user_id: user.id, title: titleMod.sanitised, body: bodyMod.sanitised,
         urgency: form.urgency, neighbourhood: profile?.neighbourhood || "Lyde Green",
       });
+      const urgencyLabel = form.urgency === "urgent" ? "🚨 Urgent Alert" : "⚠️ General Update";
+      await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: urgencyLabel,
+          body: titleMod.sanitised,
+          tag: "watch-alert",
+          url: "/watch",
+        }),
+      }).catch(() => {});
       onCreated(); toast.success("Alert posted!");
     } catch (e: any) { setError(e.message); } finally { setLoading(false); }
   };
@@ -237,6 +339,7 @@ export default function WatchPage() {
           </button>
         </div>
 
+        {user && <NotificationBanner userId={user.id} />}
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex gap-3 items-start">
           <span className="text-xl flex-shrink-0">🚨</span>
           <div><p className="text-sm font-semibold text-amber-800">Emergency? Call 999 first</p><p className="text-xs text-amber-700 mt-0.5 leading-relaxed">This board is for community awareness only.</p></div>
