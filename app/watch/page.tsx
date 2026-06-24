@@ -79,7 +79,7 @@ function NotificationBanner({ userId }: { userId: string }) {
         <Bell className="w-4 h-4 text-emerald-600 shrink-0" />
         <span className="text-xs text-emerald-800 font-medium">Watch alerts enabled for this device</span>
       </div>
-      <button onClick={unsubscribe} disabled={status === "loading"} className="text-[10px] text-emerald-600 hover:text-emerald-800 font-medium underline">Turn off</button>
+      <button onClick={unsubscribe} className="text-[10px] text-emerald-600 hover:text-emerald-800 font-medium underline">Turn off</button>
     </div>
   );
 
